@@ -122,8 +122,8 @@ export class BoardComponent implements OnInit, Board {
           let count = Number(charLine[j]);
           while (count > 0) {
             let newSquare: Square = {
-              row: i + 1 as Coord,
-              col: index + 1 as Coord
+              row: 7 - i as Coord,
+              col: index as Coord
             }
             squareLine.push(newSquare);
             index++;
@@ -187,8 +187,8 @@ export class BoardComponent implements OnInit, Board {
             }
           }
           let newSquare: Square = {
-            row: i + 1 as Coord,
-            col: index + 1 as Coord,
+            row: 7 - i as Coord,
+            col: index as Coord,
             occupyingPiece: squarePiece
           }
           index++;
@@ -204,6 +204,7 @@ export class BoardComponent implements OnInit, Board {
   onSelect(square: Square):void{
     this.selectedSquare = square;
     console.log("selected");
+    console.log(square);
     if(square.occupyingPiece){
       this.pieceSelected = true;
       this.selectedPiece = square.occupyingPiece;

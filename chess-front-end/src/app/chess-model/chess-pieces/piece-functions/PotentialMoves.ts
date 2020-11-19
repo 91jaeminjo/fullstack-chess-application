@@ -19,8 +19,6 @@ export function whitePawnPotentialMoves(pos: Square): Move[] {
 
         for( let promotePiece : PieceType = PieceType.Knight; promotePiece < PieceType.King; promotePiece++ ){
 
-        
-
             //move 1
             const singleMove: Move = {
                 from: pos,
@@ -52,8 +50,6 @@ export function whitePawnPotentialMoves(pos: Square): Move[] {
                 toReturn.push(rightCapture);
             }
         }
-
-
 
     }
     else {

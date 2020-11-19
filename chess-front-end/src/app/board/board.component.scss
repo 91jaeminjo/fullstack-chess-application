@@ -36,10 +36,7 @@
     
 }
 
-.selected{
-    border: 5px solid;
-    border-color: red;
-}
+
 
 .white{
     background-color: #e8ebef;
@@ -48,4 +45,22 @@
 .black{
     background-color: #7d8796;
     color: white;
+}
+
+.selected{
+
+    background-color: #d42f2f80;
+}
+
+.whitePieceSelected{
+    border-width: 2px;
+    border-style: solid;
+    border-color: red;
+    background-color: #d42f2f80;
+}
+
+.blackPieceSelected{
+    border-width: 5px;
+    border-style: solid;
+    border-color: navy;
 }
