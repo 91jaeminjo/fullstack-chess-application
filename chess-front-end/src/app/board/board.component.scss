@@ -1,5 +1,5 @@
 .board{
-    box-sizing: border-box;
+    box-sizing: content-box;
     margin: auto;
     margin: auto;
 }
@@ -12,7 +12,6 @@
     img{
         
         margin: auto;
-        display: block;
         height: 6vw;        
         width: auto;
     }
@@ -37,6 +36,10 @@
     
 }
 
+.selected{
+    border: 5px solid;
+    border-color: red;
+}
 
 .white{
     background-color: #e8ebef;

@@ -1,8 +1,11 @@
 <div class="container justify-items-center">
     <div class="row board justify-items-center align-items-center" *ngFor="let row of squares; index as i">
         
-        <div class="col square" *ngFor="let square of row; index as j" [class.white] = "(i+j)%2==0"
-        [class.black] = "(i+j)%2==1">
+        <div class="col square" *ngFor="let square of row; index as j" 
+        [class.white] = "(i+j)%2==0"
+        [class.black] = "(i+j)%2==1"
+        [class.selected] = "square === selectedPiece"
+        (click)="onSelect(square)">
             <div *ngIf="i==7">
                 <div [ngSwitch]="j">
                     <div *ngSwitchCase=0>

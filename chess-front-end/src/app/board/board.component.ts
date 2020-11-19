@@ -37,9 +37,11 @@ export class BoardComponent implements OnInit, Board {
   isInCheck: boolean;
   condition: Outcome;
   state: string[];
-
+  selectedSquare: any;
+  selectedPiece: any;
+  pieceSelected: boolean = false;
   constructor() {
-    let boardState: string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    let boardState: string = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
     let input: string[] = boardState.split(" ");
     this.state = input[0].split("/");
 
@@ -112,7 +114,8 @@ export class BoardComponent implements OnInit, Board {
     for (let i = 0; i < 8; i++) {
       let squareLine: Square[] = [];
       let charLine: string[] = this.state[i].split("");
-      for (let j = 0; j < 8; j++) {
+      let index = 0;
+      for (let j = 0; j < charLine.length; j++) {
         console.log(charLine[j]);
         if (!isNaN(Number(charLine[j]))) {
           console.log(Number(charLine[j]));
@@ -120,10 +123,10 @@ export class BoardComponent implements OnInit, Board {
           while (count > 0) {
             let newSquare: Square = {
               row: i + 1 as Coord,
-              col: j + 1 as Coord
+              col: index + 1 as Coord
             }
             squareLine.push(newSquare);
-            j++;
+            index++;
             count--;
 
           }
@@ -185,9 +188,10 @@ export class BoardComponent implements OnInit, Board {
           }
           let newSquare: Square = {
             row: i + 1 as Coord,
-            col: j + 1 as Coord,
+            col: index + 1 as Coord,
             occupyingPiece: squarePiece
           }
+          index++;
           squareLine.push(newSquare);
         }
 
@@ -196,6 +200,22 @@ export class BoardComponent implements OnInit, Board {
     }
     console.log(this.squares);
   }
+
+  onSelect(square: Square):void{
+    this.selectedSquare = square;
+    console.log("selected");
+    if(square.occupyingPiece){
+      this.pieceSelected = true;
+      this.selectedPiece = square.occupyingPiece;
+      console.log(this.selectedPiece);
+      console.log(this.selectedPiece.potentialMoves(square));
+    }
+    else{
+      this.pieceSelected =false; 
+    }
+    
+  }
+
   makeMove(toMake: Move): Board {
     throw new Error("Method not implemented.");
   }
