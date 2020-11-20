@@ -1,10 +1,11 @@
+import { SquareComponent } from 'src/app/square/square.component';
 import { PieceType } from "../GameData";
-import { Square } from "./Square";
+
 
 export interface Move {
     mustCapture?: boolean;
-    enPassant?: Square;
+    enPassant?: SquareComponent;
     promoteTo?: PieceType;
-    from: Square;
-    to: Square;
+    from: SquareComponent;
+    to: SquareComponent;
 }

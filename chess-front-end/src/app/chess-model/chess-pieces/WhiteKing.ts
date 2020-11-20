@@ -4,6 +4,7 @@ import { Piece } from "../game-definitions/game-interface/Piece";
 import { Square } from "../game-definitions/game-interface/Square";
 import { BoardSquare } from "../game-definitions/game-object/BoardSquare";
 import { kingPotentialMoves } from "./piece-functions/PotentialMoves";
+import { SquareComponent } from 'src/app/square/square.component';
 
 export class WhiteKing implements Piece {
 
@@ -15,7 +16,7 @@ export class WhiteKing implements Piece {
         this.colorOfPiece = PieceColor.White;
     }
 
-    potentialMoves(pos: Square): Move[]{
+    potentialMoves(pos: SquareComponent): Move[]{
 
         const toReturn: Move[] = kingPotentialMoves(pos);
 

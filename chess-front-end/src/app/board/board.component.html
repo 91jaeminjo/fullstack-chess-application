@@ -1,96 +1,12 @@
-<div class="container justify-items-center">
-    <div class="row board justify-items-center align-items-center" *ngFor="let row of squares; index as i">
-        
-        <div class="col square" *ngFor="let square of row; index as j" 
-        [class.white] = "(i+j)%2==0"
-        [class.black] = "(i+j)%2==1"
-        [class.selected] = "square === selectedSquare"
-        (click)="onSelect(square)">
-            <div *ngIf="i==7">
-                <div [ngSwitch]="j">
-                    <div *ngSwitchCase=0>
-                        <div class="bottom-right-text">a</div>
-                    </div>
-                    <div *ngSwitchCase=1>
-                        <div class="bottom-right-text">b</div>
-                    </div>
-                    <div *ngSwitchCase=2>
-                        <div class="bottom-right-text">c</div>
-                    </div>
-                    <div *ngSwitchCase=3>
-                        <div class="bottom-right-text">d</div>
-                    </div>
-                    <div *ngSwitchCase=4>
-                        <div class="bottom-right-text">e</div>
-                    </div>
-                    <div *ngSwitchCase=5>
-                        <div class="bottom-right-text">f</div>
-                    </div>
-                    <div *ngSwitchCase=6>
-                        <div class="bottom-right-text">g</div>
-                    </div>
-                    <div *ngSwitchCase=7>
-                        <div class="bottom-right-text">h</div>
-                    </div>
-                </div>
+<div class="container justify-items-center board">
+    <div class="row justify-items-center align-items-center" *ngFor="let row of squares; index as i">
+        <div class="col square" *ngFor="let square of row; index as j">
+            <div [class.selected]="square === selectedSquare" (click)="onSelect(square)">
+                <app-square [row]="i" [col]="j" [occupyingPiece]="squares[i][j].occupyingPiece"></app-square>
             </div>
-            <div *ngIf="j==0">
-                <div [ngSwitch]="i">
-                    <div *ngSwitchCase=0>
-                        <div class="top-left-text">8</div>
-                    </div>
-                    <div *ngSwitchCase=1>
-                        <div class="top-left-text">7</div>
-                    </div>
-                    <div *ngSwitchCase=2>
-                        <div class="top-left-text">6</div>
-                    </div>
-                    <div *ngSwitchCase=3>
-                        <div class="top-left-text">5</div>
-                    </div>
-                    <div *ngSwitchCase=4>
-                        <div class="top-left-text">4</div>
-                    </div>
-                    <div *ngSwitchCase=5>
-                        <div class="top-left-text">3</div>
-                    </div>
-                    <div *ngSwitchCase=6>
-                        <div class="top-left-text">2</div>
-                    </div>
-                    <div *ngSwitchCase=7>
-                        <div class="top-left-text">1</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div *ngIf="square.occupyingPiece">
-                <div [ngSwitch]="square.occupyingPiece.colorOfPiece">
-                    <div *ngSwitchCase=0>
-                        <div [ngSwitch]="square.occupyingPiece.typeOfPiece" [class.whitePieceSelected] = "square === selectedSquare">
-                            <div *ngSwitchCase=0><img src="assets/chess-piece-img/wP.png"></div>
-                            <div *ngSwitchCase=1><img src="assets/chess-piece-img/wB.png"></div>
-                            <div *ngSwitchCase=2><img src="assets/chess-piece-img/wN.png"></div>
-                            <div *ngSwitchCase=3><img src="assets/chess-piece-img/wR.png"></div>
-                            <div *ngSwitchCase=4><img src="assets/chess-piece-img/wQ.png"></div>
-                            <div *ngSwitchCase=5><img src="assets/chess-piece-img/wK.png"></div>
-                        </div>
-                        
-                    </div>
-                    <div *ngSwitchCase=1>
-                        <div [ngSwitch]="square.occupyingPiece.typeOfPiece" [class.blackPieceSelected] = "square === selectedSquare">
-                            <div *ngSwitchCase=0><img src="assets/chess-piece-img/bP.png"></div>
-                            <div *ngSwitchCase=1><img src="assets/chess-piece-img/bB.png"></div>
-                            <div *ngSwitchCase=2><img src="assets/chess-piece-img/bN.png"></div>
-                            <div *ngSwitchCase=3><img src="assets/chess-piece-img/bR.png"></div>
-                            <div *ngSwitchCase=4><img src="assets/chess-piece-img/bQ.png"></div>
-                            <div *ngSwitchCase=5><img src="assets/chess-piece-img/bK.png"></div>
-                        </div>
-                    </div>
-                    
-                </div>
-                
-            </div>  
         </div>
     </div>
 
 </div>
+
+

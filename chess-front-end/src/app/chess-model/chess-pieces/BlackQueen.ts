@@ -3,6 +3,7 @@ import { Move } from "../game-definitions/game-interface/Move";
 import { Piece } from "../game-definitions/game-interface/Piece";
 import { Square } from "../game-definitions/game-interface/Square";
 import { bishopPotentialMoves, rookPotentialMoves } from "./piece-functions/PotentialMoves";
+import { SquareComponent } from 'src/app/square/square.component';
 
 export class BlackQueen implements Piece {
     typeOfPiece: PieceType;
@@ -13,7 +14,7 @@ export class BlackQueen implements Piece {
         this.colorOfPiece = PieceColor.Black;
     }
 
-    potentialMoves(pos: Square): Move[] {
+    potentialMoves(pos: SquareComponent): Move[] {
         const orthoMoves: Move[] = rookPotentialMoves(pos);
         const diagMoves: Move[] = bishopPotentialMoves(pos);
 

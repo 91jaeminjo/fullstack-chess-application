@@ -1,0 +1,13 @@
+<div class="square" 
+    [class.white] = "(row+col)%2==0"
+    [class.black] = "(row+col)%2==1">
+    <div *ngIf="occupyingPiece">
+        <img src="{{image}}">
+    </div>
+    <div *ngIf="rowNum">
+        <div class="top-left-text">{{rowNum}}</div>
+    </div>
+    <div *ngIf="colLabel">
+        <div class="bottom-right-text">{{colLabel}}</div>
+    </div>
+</div>

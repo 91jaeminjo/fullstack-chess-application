@@ -16,7 +16,7 @@ import { Coord, Outcome } from "../chess-model/game-definitions/GameData";
 import { Board } from "../chess-model/game-definitions/game-interface/Board";
 import { Move } from "../chess-model/game-definitions/game-interface/Move";
 import { Piece } from "../chess-model/game-definitions/game-interface/Piece";
-import { Square } from "../chess-model/game-definitions/game-interface/Square";
+import { SquareComponent } from '../square/square.component';
 
 
 @Component({
@@ -25,21 +25,23 @@ import { Square } from "../chess-model/game-definitions/game-interface/Square";
   styleUrls: ['./board.component.scss']
 })
 export class BoardComponent implements OnInit, Board {
-  squares: Square[][];
+  squares: SquareComponent[][];
   isWhiteTurn: boolean;
   wkCastle: boolean;
   wqCastle: boolean;
   bkCastle: boolean;
   bqCastle: boolean;
-  enPassant: Square;
+  enPassant: SquareComponent | undefined;
   fiftyMoveDrawCount: number;
   turn: number;
   isInCheck: boolean;
   condition: Outcome;
   state: string[];
-  selectedSquare: any;
-  selectedPiece: any;
+  selectedSquare: SquareComponent | undefined;
+  selectedPiece: Piece | undefined;
   pieceSelected: boolean = false;
+  
+  
   constructor() {
     let boardState: string = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
     let input: string[] = boardState.split(" ");
@@ -90,17 +92,14 @@ export class BoardComponent implements OnInit, Board {
         }
       }
 
-
-      this.enPassant = {
-        row: rowNum,
-        col: colNum
-      }
+      let enPassantSquare = new SquareComponent();
+      enPassantSquare.row = rowNum as Coord;
+      enPassantSquare.row = rowNum as Coord;
+      
+      this.enPassant = enPassantSquare;
     }
     else {
-      this.enPassant = {
-        row: 0,
-        col: 0
-      };
+      this.enPassant = undefined;
     }
 
     this.fiftyMoveDrawCount = +input[4];
@@ -112,7 +111,7 @@ export class BoardComponent implements OnInit, Board {
 
   ngOnInit(): void {
     for (let i = 0; i < 8; i++) {
-      let squareLine: Square[] = [];
+      let squareLine: SquareComponent[] = [];
       let charLine: string[] = this.state[i].split("");
       let index = 0;
       for (let j = 0; j < charLine.length; j++) {
@@ -121,10 +120,10 @@ export class BoardComponent implements OnInit, Board {
           console.log(Number(charLine[j]));
           let count = Number(charLine[j]);
           while (count > 0) {
-            let newSquare: Square = {
-              row: 7 - i as Coord,
-              col: index as Coord
-            }
+            let newSquare = new SquareComponent();
+            newSquare.row = 7 - i as Coord;
+            newSquare.col = index as Coord;
+            
             squareLine.push(newSquare);
             index++;
             count--;
@@ -186,25 +185,25 @@ export class BoardComponent implements OnInit, Board {
               break;
             }
           }
-          let newSquare: Square = {
-            row: 7 - i as Coord,
-            col: index as Coord,
-            occupyingPiece: squarePiece
-          }
+          let newSquare = new SquareComponent();
+          newSquare.row = 7 - i as Coord;
+          newSquare.col = index as Coord;
+          newSquare.occupyingPiece = squarePiece;
+          
           index++;
           squareLine.push(newSquare);
         }
-
       }
       this.squares.push(squareLine);
     }
     console.log(this.squares);
   }
 
-  onSelect(square: Square):void{
+  onSelect(square: SquareComponent):void{
+    
+    console.log("selected square component");
+    console.log(this);
     this.selectedSquare = square;
-    console.log("selected");
-    console.log(square);
     if(square.occupyingPiece){
       this.pieceSelected = true;
       this.selectedPiece = square.occupyingPiece;

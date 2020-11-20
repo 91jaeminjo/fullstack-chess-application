@@ -1,15 +1,15 @@
+import { SquareComponent } from 'src/app/square/square.component';
 import { Outcome } from "../GameData";
 import { Move } from "./Move";
-import { Square } from "./Square";
 
 export interface Board {
-    squares: Square[][];
+    squares: SquareComponent[][];
     isWhiteTurn: boolean;
     wkCastle: boolean;
     wqCastle: boolean;
     bkCastle: boolean;
     bqCastle: boolean;
-    enPassant: Square;
+    enPassant: SquareComponent | undefined;
 
     fiftyMoveDrawCount: number;
     turn: number;

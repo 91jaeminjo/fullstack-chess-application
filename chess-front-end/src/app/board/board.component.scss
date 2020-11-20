@@ -1,52 +1,16 @@
 .board{
     box-sizing: content-box;
-    margin: auto;
-    margin: auto;
-}
-.square{
-    height: 8vw;
-    width: 8vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    img{
-        
-        margin: auto;
-        height: 6vw;        
-        width: auto;
-    }
-
-    .top-left-text{
-        position:absolute;
-        padding: 0.3vw;
-        left: 2px;
-        top: 2px;
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        font-size:14px;
-    
-    }
-    .bottom-right-text{
-        position: absolute;
-        padding: 0.3vw;
-        bottom:2px;
-        right:2px;
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        font-size:14px;
-    }
+    padding: 0;
+    margin-left: auto;
     
 }
-
-
-
-.white{
-    background-color: #e8ebef;
-    color: #7d8796;
+.row{
+    float:left;
 }
-.black{
-    background-color: #7d8796;
-    color: white;
+.col{
+    margin:0;
+    padding:0;
 }
-
 .selected{
 
     background-color: #d42f2f80;

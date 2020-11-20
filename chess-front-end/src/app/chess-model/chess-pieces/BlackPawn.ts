@@ -4,6 +4,7 @@ import { Piece } from "../game-definitions/game-interface/Piece";
 import { Square } from "../game-definitions/game-interface/Square";
 import { BoardSquare } from "../game-definitions/game-object/BoardSquare";
 import { blackPawnPotentialMoves } from "./piece-functions/PotentialMoves";
+import { SquareComponent } from 'src/app/square/square.component';
 
 export class BlackPawn implements Piece {
     typeOfPiece: PieceType;
@@ -14,7 +15,7 @@ export class BlackPawn implements Piece {
         this.colorOfPiece = PieceColor.Black;
     }
 
-    potentialMoves(pos: Square): Move[] {
+    potentialMoves(pos: SquareComponent): Move[] {
 
         //4 possible cases
 
