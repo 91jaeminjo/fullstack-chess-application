@@ -25,27 +25,37 @@ import { SquareComponent } from '../square/square.component';
   styleUrls: ['./board.component.scss']
 })
 export class BoardComponent implements OnInit, Board {
-  squares: SquareComponent[][];
-  isWhiteTurn: boolean;
-  wkCastle: boolean;
-  wqCastle: boolean;
-  bkCastle: boolean;
-  bqCastle: boolean;
-  enPassant: SquareComponent | undefined;
-  fiftyMoveDrawCount: number;
-  turn: number;
-  isInCheck: boolean;
-  condition: Outcome;
-  state: string[];
+  @Input() boardStateData!: string; // starting state "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq e3 0 1";
+  squares!: SquareComponent[][];
+  isWhiteTurn!: boolean;
+  wkCastle!: boolean;
+  wqCastle!: boolean;
+  bkCastle!: boolean;
+  bqCastle!: boolean;
+  enPassant!: SquareComponent | undefined;
+  fiftyMoveDrawCount!: number;
+  turn!: number;
+  isInCheck!: boolean;
+  condition!: Outcome;
+  state!: string[];
   selectedSquare: SquareComponent | undefined;
   selectedPiece: Piece | undefined;
   pieceSelected: boolean = false;
   selectedPieceColor:PieceColor | undefined;
   showPotentialMoves:boolean|undefined;
-  @Input() boardState: string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq e3 0 1";
+  
   constructor() {
-    
-    let input: string[] = this.boardState.split(" ");
+  }
+
+  ngOnInit(): void {
+    this.initialize();
+    this.setupBoard();
+  }
+
+  initialize():void {
+    console.log("from board component");
+    console.log("board state: "+this.boardStateData);
+    let input: string[] = this.boardStateData.split(" ");
     this.state = input[0].split("/").reverse();
 
     this.squares = [];
@@ -107,12 +117,8 @@ export class BoardComponent implements OnInit, Board {
     this.turn = +input[5];
     this.isInCheck = false;
     this.condition = Outcome.InProgress;
-    
   }
 
-  ngOnInit(): void {
-    this.setupBoard();
-  }
 
   setupBoard():void{
     this.squares =[];
@@ -121,9 +127,6 @@ export class BoardComponent implements OnInit, Board {
       let charLine: string[] = this.state[i].split("");
       let index = 0;
       for (let j = 0; j < charLine.length; j++) {
-
-        
-
         console.log(charLine[j]);
         if (!isNaN(Number(charLine[j]))) {
           console.log(Number(charLine[j]));
@@ -132,9 +135,6 @@ export class BoardComponent implements OnInit, Board {
             let newSquare = new SquareComponent();
             newSquare.row = i as Coord;
             newSquare.col = index as Coord;
-            // if(newSquare.row==4&&newSquare.col==4){
-            //   newSquare.potentialMoveMark = true;
-            // }
             squareLine.push(newSquare);
             index++;
             count--;

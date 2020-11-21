@@ -26,5 +26,6 @@
 
 
 </div>
-
-<app-board [hidden]="!started" [boardState]="boardState"></app-board>
+<div *ngIf="started">
+    <app-board [boardStateData]="boardState"></app-board>
+</div>
