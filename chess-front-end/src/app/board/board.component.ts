@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 import { BlackBishop } from "../chess-model/chess-pieces/BlackBishop";
 import { BlackKing } from "../chess-model/chess-pieces/BlackKing";
@@ -12,7 +12,7 @@ import { WhiteKnight } from "../chess-model/chess-pieces/WhiteKnight";
 import { WhitePawn } from "../chess-model/chess-pieces/WhitePawn";
 import { WhiteQueen } from "../chess-model/chess-pieces/WhiteQueen";
 import { WhiteRook } from "../chess-model/chess-pieces/WhiteRook";
-import { Coord, Outcome } from "../chess-model/game-definitions/GameData";
+import { Coord, Outcome, PieceColor } from "../chess-model/game-definitions/GameData";
 import { Board } from "../chess-model/game-definitions/game-interface/Board";
 import { Move } from "../chess-model/game-definitions/game-interface/Move";
 import { Piece } from "../chess-model/game-definitions/game-interface/Piece";
@@ -40,12 +40,13 @@ export class BoardComponent implements OnInit, Board {
   selectedSquare: SquareComponent | undefined;
   selectedPiece: Piece | undefined;
   pieceSelected: boolean = false;
-  
-  
+  selectedPieceColor:PieceColor | undefined;
+  showPotentialMoves:boolean|undefined;
+  @Input() boardState: string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq e3 0 1";
   constructor() {
-    let boardState: string = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
-    let input: string[] = boardState.split(" ");
-    this.state = input[0].split("/");
+    
+    let input: string[] = this.boardState.split(" ");
+    this.state = input[0].split("/").reverse();
 
     this.squares = [];
     this.isWhiteTurn = input[1] == 'w';
@@ -110,20 +111,30 @@ export class BoardComponent implements OnInit, Board {
   }
 
   ngOnInit(): void {
+    this.setupBoard();
+  }
+
+  setupBoard():void{
+    this.squares =[];
     for (let i = 0; i < 8; i++) {
       let squareLine: SquareComponent[] = [];
       let charLine: string[] = this.state[i].split("");
       let index = 0;
       for (let j = 0; j < charLine.length; j++) {
+
+        
+
         console.log(charLine[j]);
         if (!isNaN(Number(charLine[j]))) {
           console.log(Number(charLine[j]));
           let count = Number(charLine[j]);
           while (count > 0) {
             let newSquare = new SquareComponent();
-            newSquare.row = 7 - i as Coord;
+            newSquare.row = i as Coord;
             newSquare.col = index as Coord;
-            
+            // if(newSquare.row==4&&newSquare.col==4){
+            //   newSquare.potentialMoveMark = true;
+            // }
             squareLine.push(newSquare);
             index++;
             count--;
@@ -186,7 +197,7 @@ export class BoardComponent implements OnInit, Board {
             }
           }
           let newSquare = new SquareComponent();
-          newSquare.row = 7 - i as Coord;
+          newSquare.row = i as Coord;
           newSquare.col = index as Coord;
           newSquare.occupyingPiece = squarePiece;
           
@@ -194,26 +205,77 @@ export class BoardComponent implements OnInit, Board {
           squareLine.push(newSquare);
         }
       }
-      this.squares.push(squareLine);
+      this.squares.unshift(squareLine);
     }
+    
     console.log(this.squares);
   }
 
   onSelect(square: SquareComponent):void{
-    
     console.log("selected square component");
-    console.log(this);
-    this.selectedSquare = square;
-    if(square.occupyingPiece){
+    console.log(square);
+    
+    if(this.pieceSelected && this.selectedSquare==square){
+      this.pieceSelected = false;
+      this.showPotentialMoves = false;
+      this.removeHighlight();
+    }
+
+    else if(square.occupyingPiece){
+      this.removeHighlight();
       this.pieceSelected = true;
+      this.selectedSquare = square;
       this.selectedPiece = square.occupyingPiece;
+      this.selectedPieceColor = square.occupyingPiece.colorOfPiece;
       console.log(this.selectedPiece);
-      console.log(this.selectedPiece.potentialMoves(square));
+      console.log(this.selectedPiece.colorOfPiece);
+      let potentialMoves:Move[] = this.selectedPiece.potentialMoves(square);
+      let upperLimit: number = 8;
+      let lowerLimit: number = -1;
+      let leftLimit: number = -1;
+      let rightLimit: number = 8;
+
+      //console.log(potentialMoves);
+      for(let move of potentialMoves){
+        console.log(move);
+        let toRow: Coord | number = 7-move.to.row;
+        let toCol: Coord | number = move.to.col;
+        this.showPotentialMoves = true;
+        if(this.squares[toRow][toCol].occupyingPiece
+          && this.squares[toRow][toCol].occupyingPiece?.colorOfPiece == this.selectedPieceColor
+          || ( (toRow>upperLimit) || (toRow<lowerLimit) || (toCol<leftLimit) || (toCol>rightLimit) )){
+            if((7 - square.row)>toRow&&toRow>lowerLimit){
+              lowerLimit = toRow;
+            }else if((7 - square.row)<toRow&&toRow<upperLimit){
+              upperLimit = toRow;
+            }
+            if(square.col>toCol && toCol>leftLimit){
+              leftLimit = toCol;
+            }else if(square.col<toCol && toCol<upperLimit){
+              rightLimit = toCol;
+            }
+
+        }
+        else{
+          this.squares[toRow][toCol].potentialMoveMark = true;
+          console.log("affected square:");
+          console.log(this.squares[toRow][toCol]);
+        }
+      }
     }
     else{
       this.pieceSelected =false; 
     }
     
+  }
+
+  removeHighlight():void{
+    this.showPotentialMoves= false;
+    for(let i = 0; i<8;i++){
+      for(let j = 0; j<8;j++){
+        this.squares[i][j].potentialMoveMark =false;
+      }
+    }
   }
 
   makeMove(toMake: Move): Board {

@@ -1,6 +1,10 @@
 <div class="square" 
     [class.white] = "(row+col)%2==0"
-    [class.black] = "(row+col)%2==1">
+    [class.black] = "(row+col)%2==1"
+    [class.selected] = "selected || potentialMoveMark"
+    [class.whitePieceSelected] = "whiteSelected || potentialMoveMark"
+    [class.blackPieceSelected] = "blackSelected">
+    
     <div *ngIf="occupyingPiece">
         <img src="{{image}}">
     </div>

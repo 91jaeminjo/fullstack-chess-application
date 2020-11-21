@@ -1,9 +1,14 @@
 <div class="container justify-items-center board">
     <div class="row justify-items-center align-items-center" *ngFor="let row of squares; index as i">
-        <div class="col square" *ngFor="let square of row; index as j">
-            <div [class.selected]="square === selectedSquare" (click)="onSelect(square)">
-                <app-square [row]="i" [col]="j" [occupyingPiece]="squares[i][j].occupyingPiece"></app-square>
-            </div>
+        <div class="col" *ngFor="let square of row; index as j"
+        (click)="onSelect(square)">
+            <app-square 
+            [selected] = "square === selectedSquare&&pieceSelected" 
+            [whiteSelected] = "square === selectedSquare && selectedPieceColor == 0 && pieceSelected || squares[i][j].potentialMoveMark"
+            [blackSelected] = "square === selectedSquare && selectedPieceColor == 1 && pieceSelected"
+            [row]="i" 
+            [col]="j"
+            [occupyingPiece]="squares[i][j].occupyingPiece"></app-square>
         </div>
     </div>
 

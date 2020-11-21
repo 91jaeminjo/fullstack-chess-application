@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Coord } from "../chess-model/game-definitions/GameData";
+import { Coord, PieceColor } from "../chess-model/game-definitions/GameData";
 import { Piece } from "../chess-model/game-definitions/game-interface/Piece";
 
 
@@ -13,11 +13,15 @@ export class SquareComponent implements OnInit {
   row!: Coord | number;
   @Input()
   col!: Coord | number;
-  @Input() occupyingPiece?: Piece;
-  
+  @Input() occupyingPiece: Piece | undefined;
+  @Input() selected?: boolean;
+  @Input() whiteSelected?:boolean;
+  @Input() blackSelected?:boolean;
+  @Input() potentialMoveMark?:boolean;
   image?:string;
   rowNum?:string = "";
   colLabel?:string = "";
+  
   constructor() {
     
   }
@@ -25,11 +29,11 @@ export class SquareComponent implements OnInit {
   ngOnInit(): void {
     this.setSquareImage();
     this.setBoardLabel();
-
+    
   }
   setBoardLabel() : void{
     if(this.col==0){
-      this.rowNum =this.row+"";
+      this.rowNum =(8-this.row)+"";
     }
     if(this.row==7){
       switch(this.col){

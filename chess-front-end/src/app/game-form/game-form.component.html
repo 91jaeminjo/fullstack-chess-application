@@ -1,0 +1,20 @@
+<div class="container">
+
+  <h1>Load a Game</h1>
+  <form (ngSubmit)="retrieveGameById()" #gameForm="ngForm">
+    
+    <div class="form-group">
+      <label for="gameId">All Games</label>
+      <select class="form-control" id="gameId" required [(ngModel)]="gameId" [ngModelOptions]="{standalone: true}">
+        <option [value]="">Select Game Id</option>
+        <option *ngFor="let gameId of gameList" [value]="gameId">{{gameId}}</option>
+      </select>
+      <div [hidden]="gameForm.valid || gameForm.pristine" class="alert alert-danger">
+        Please pick a game to load.
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-success" (click)="gameForm.reset()" [disabled]="!gameForm.form.valid">Submit</button>
+    
+  </form>
+</div>

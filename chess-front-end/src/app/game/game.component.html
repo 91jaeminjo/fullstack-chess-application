@@ -1,0 +1,30 @@
+<div class="container" [hidden]="started">
+
+<h2 class="text-center">Welcome to my Chess Application!</h2>
+<br/>
+<br/>
+
+<div class="row">
+    <div class="col-1"></div>
+    <div class="col-4">
+        <h3>Start a new game of Chess.</h3>
+        <br/>
+        <br/>
+        <button class="btn btn-primary">Start a new Game</button>
+    </div>
+    <div class="col-2"></div>
+    <div class="col-4">
+        <!-- <h3>Load a previous game.</h3>
+        <select class="selectpicker">
+            <option *ngFor="let game of gameList" [value]="game">{{game}}</option>
+        </select>
+        <button class="btn" (click)="loadGame()">load game</button> -->
+        <app-game-form (boardData)="loadBoardData($event)"></app-game-form>
+    </div>
+    <div class="col-1"></div>
+</div>
+
+
+</div>
+
+<app-board [hidden]="!started" [boardState]="boardState"></app-board>

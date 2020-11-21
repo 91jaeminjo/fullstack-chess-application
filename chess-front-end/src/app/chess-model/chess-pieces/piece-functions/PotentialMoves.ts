@@ -252,8 +252,8 @@ export function bishopPotentialMoves(pos: SquareComponent): Move[]{
         
         toReturn.push( move );
     }
-    console.log("top left added");
-    console.log(toReturn);
+    // console.log("top left added");
+    // console.log(toReturn);
     
     //top right
     //col (+) rows (+)
@@ -269,8 +269,8 @@ export function bishopPotentialMoves(pos: SquareComponent): Move[]{
         toReturn.push( move );
     }
 
-    console.log("top right added");
-    console.log(toReturn);
+    // console.log("top right added");
+    // console.log(toReturn);
 
     //bottom left
     //col (-)  rows (-)
@@ -286,8 +286,8 @@ export function bishopPotentialMoves(pos: SquareComponent): Move[]{
         toReturn.push( move );
     }
 
-    console.log("bottom left added");
-    console.log(toReturn);
+    // console.log("bottom left added");
+    // console.log(toReturn);
 
     //bottom right
     //col (+) row(-)
@@ -302,8 +302,8 @@ export function bishopPotentialMoves(pos: SquareComponent): Move[]{
         
         toReturn.push( move );
     }
-    console.log("bottom right added");
-    console.log(toReturn);
+    //console.log("bottom right added");
+    //console.log(toReturn);
 
     return toReturn;
 }
@@ -413,8 +413,8 @@ export function rookPotentialMoves(pos: SquareComponent): Move[]{
         
         toReturn.push( move );
     }
-    console.log("top added");
-    console.log(toReturn);
+    // console.log("top added");
+    // console.log(toReturn);
     //down
     //rows (-)
     for( let offSet : number = 1; pos.row - offSet >= 0; offSet++ ){
@@ -428,8 +428,8 @@ export function rookPotentialMoves(pos: SquareComponent): Move[]{
         
         toReturn.push( move );
     }
-    console.log("bottom added");
-    console.log(toReturn);
+    // console.log("bottom added");
+    // console.log(toReturn);
     //left
     //col (-)
     for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row <= 7; offSet++ ){
@@ -443,8 +443,8 @@ export function rookPotentialMoves(pos: SquareComponent): Move[]{
         
         toReturn.push( move );
     }
-    console.log("left added");
-    console.log(toReturn);
+    // console.log("left added");
+    // console.log(toReturn);
     //right
     //col(+)
     for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row <= 7; offSet++ ){
@@ -458,8 +458,8 @@ export function rookPotentialMoves(pos: SquareComponent): Move[]{
         
         toReturn.push( move );
     }
-    console.log("right added");
-    console.log(toReturn);
+    // console.log("right added");
+    // console.log(toReturn);
     return toReturn;
 }
 

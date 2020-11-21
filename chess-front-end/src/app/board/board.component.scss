@@ -2,7 +2,7 @@
     box-sizing: content-box;
     padding: 0;
     margin-left: auto;
-    
+
 }
 .row{
     float:left;
@@ -10,21 +10,4 @@
 .col{
     margin:0;
     padding:0;
-}
-.selected{
-
-    background-color: #d42f2f80;
-}
-
-.whitePieceSelected{
-    border-width: 2px;
-    border-style: solid;
-    border-color: red;
-    background-color: #d42f2f80;
-}
-
-.blackPieceSelected{
-    border-width: 5px;
-    border-style: solid;
-    border-color: navy;
 }
