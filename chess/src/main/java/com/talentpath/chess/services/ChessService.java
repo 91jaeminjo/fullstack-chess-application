@@ -7,7 +7,6 @@ import com.github.bhlangonijr.chesslib.move.MoveGeneratorException;
 import com.github.bhlangonijr.chesslib.move.MoveList;
 import com.talentpath.chess.daos.ChessDao;
 import com.talentpath.chess.dtos.MoveRequest;
-import com.talentpath.chess.dtos.SelectedPiece;
 import com.talentpath.chess.dtos.UndoRequest;
 import com.talentpath.chess.exceptions.ChessDaoException;
 import com.talentpath.chess.exceptions.InvalidInputException;
@@ -18,7 +17,6 @@ import com.talentpath.chess.models.MoveHistory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -67,31 +65,39 @@ public class ChessService {
         if(gameToUpdate.getGameOver()){
             return boardDataToUpdate;
         }
-        String prevState = boardDataToUpdate.getState();
+        String prevState = boardDataToUpdate.getState().trim();
 
         // verify move
+        String currentState = moveRequest.getCurrentState();
+        Board testBoard = new Board();
+        testBoard.loadFromFen(currentState);
+
+        if(!prevState.equals(currentState)){
+            throw new InvalidInputException("The state of board received doesn't match with the state in record.");
+        }
         Board board = new Board();
         board.loadFromFen(prevState);
         MoveList moves = MoveGenerator.generateLegalMoves(board);
-        
-        String newState = moveRequest.getNewState();
-        System.out.println(newState+".End");
+        String newMove = moveRequest.getNewMove();
+
         Move moveMade = null;
         boolean legalMove = false;
         for (Move move : moves) {
-            board.doMove(move);
-            if(board.getFen().equals(newState)){
+
+            if(move.toString().equals(newMove)){
                 moveMade = move;
                 legalMove = true;
                 break;
             }
-            board.undoMove();
+
         }
         if(legalMove == false){
 
             return boardDataToUpdate;
         }
-        board.loadFromFen(newState);
+
+        board.doMove(moveMade);
+        String newState = board.getFen();
         if(board.isMated()){
             gameToUpdate.setGameOver(true);
         }
@@ -121,7 +127,8 @@ public class ChessService {
         if(successUpdatingGame == false){
             throw new ChessDaoException("Rows affected by update game during make move was not 1.");
         }
-
+        System.out.println("new Board Data");
+        System.out.println(newBoardData);
         return newBoardData;
 
     }

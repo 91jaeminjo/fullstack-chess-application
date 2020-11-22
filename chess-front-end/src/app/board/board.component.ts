@@ -345,6 +345,24 @@ export class BoardComponent implements OnInit, Board {
       this.reloadBoard();
     })
   }
+
+  undoMove(): void{
+    console.log("undoing move");
+    let toUndo: any ={
+      gameId: this.gameId,
+      boardId: this.boardId
+
+    }
+    this.gameService.undoMove(toUndo)
+    .subscribe(board=>{
+      console.log(board);
+      this.gameId = board.gameId;
+      this.boardId = board.boardId;
+      this.boardStateData = board.state;
+      this.reloadBoard();
+    })
+  }
+
   isValidMove(toCheck: Move): boolean {
     throw new Error("Method not implemented.");
   }
