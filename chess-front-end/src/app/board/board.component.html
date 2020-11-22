@@ -8,6 +8,7 @@
             [blackSelected] = "square === selectedSquare && selectedPieceColor == 1 && pieceSelected"
             [row]="i" 
             [col]="j"
+            [isWhiteTurn]="isWhiteTurn"
             [occupyingPiece]="squares[i][j].occupyingPiece"></app-square>
         </div>
     </div>

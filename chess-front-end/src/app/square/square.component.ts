@@ -18,6 +18,7 @@ export class SquareComponent implements OnInit {
   @Input() whiteSelected?:boolean;
   @Input() blackSelected?:boolean;
   @Input() potentialMoveMark?:boolean;
+  @Input() isWhiteTurn?:boolean;
   image?:string;
   rowNum?:string = "";
   colLabel?:string = "";
@@ -71,6 +72,46 @@ export class SquareComponent implements OnInit {
         }
       }
     }
+  }
+  toChessCoord():string{
+    let toReturn:string ="";
+    switch(this.col){
+      case(0): {
+        toReturn = "a";
+        break;
+      }
+      case(1): {
+        toReturn = "b";
+        break;
+      }
+      case(2): {
+        toReturn = "c";
+        break;
+      }
+      case(3): {
+        toReturn = "d";
+        break;
+      }
+      case(4): {
+        toReturn = "e";
+        break;
+      }
+      case(5): {
+        toReturn = "f";
+        break;
+      }
+      case(6): {
+        toReturn = "g";
+        break;
+      }
+      case(7): {
+        toReturn = "h";
+        break;
+      }
+    }
+    console.log("this row: "+ this.row);
+    toReturn += (this.row + 1)+"";
+    return toReturn;
   }
   setSquareImage() : void{
     if(this.occupyingPiece){

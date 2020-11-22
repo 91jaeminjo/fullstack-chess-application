@@ -1,14 +1,18 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
+import { Move } from './chess-model/game-definitions/game-interface/Move';
+import { MoveRequest } from './chess-model/game-definitions/game-interface/MoveRequest';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GameServiceService {
   private chessGameUrl = 'http://localhost:8080/api'
-
+  httpOptions = {
+    headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+  };
   constructor(private http: HttpClient) { }
 
   /* GET all game ids */
@@ -28,6 +32,16 @@ export class GameServiceService {
     return this.http.get<any>(this.chessGameUrl+'/board/'+boardId)
     .pipe( tap(_ => console.log('fetched board id: '+boardId)),
     catchError(this.handleError<number[]>('getBoardById',[])))
+  }
+
+  makeMove(move:MoveRequest) : Observable<any>{
+    console.log("sending out move: ");
+    console.log(move);
+    return this.http.post<any>(this.chessGameUrl+'/makeMove', move, this.httpOptions)
+    .pipe(
+      tap( _ => console.log(`fetched board after makeMove`)),
+      catchError(this.handleError<any>('make move'))
+    );
   }
 //   /** GET hero by id. Will 404 if id not found */
 //   getHero(id: number): Observable<Hero> {

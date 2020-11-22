@@ -17,6 +17,6 @@ export interface Board {
     isInCheck: boolean;
     condition: Outcome;
 
-    makeMove(toMake: Move): Board;
+    makeMove(toMake: any): void;
     isValidMove(toCheck: Move): boolean;
 }

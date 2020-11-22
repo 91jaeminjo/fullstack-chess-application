@@ -17,6 +17,8 @@ import { Board } from "../chess-model/game-definitions/game-interface/Board";
 import { Move } from "../chess-model/game-definitions/game-interface/Move";
 import { Piece } from "../chess-model/game-definitions/game-interface/Piece";
 import { SquareComponent } from '../square/square.component';
+import { GameServiceService } from '../game-service.service';
+import { MoveRequest } from '../chess-model/game-definitions/game-interface/MoveRequest';
 
 
 @Component({
@@ -25,6 +27,8 @@ import { SquareComponent } from '../square/square.component';
   styleUrls: ['./board.component.scss']
 })
 export class BoardComponent implements OnInit, Board {
+  @Input() gameId!: number;
+  @Input() boardId!: number;
   @Input() boardStateData!: string; // starting state "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq e3 0 1";
   squares!: SquareComponent[][];
   isWhiteTurn!: boolean;
@@ -32,19 +36,19 @@ export class BoardComponent implements OnInit, Board {
   wqCastle!: boolean;
   bkCastle!: boolean;
   bqCastle!: boolean;
-  enPassant!: SquareComponent | undefined;
+  enPassant!: SquareComponent;
   fiftyMoveDrawCount!: number;
   turn!: number;
   isInCheck!: boolean;
   condition!: Outcome;
   state!: string[];
-  selectedSquare: SquareComponent | undefined;
-  selectedPiece: Piece | undefined;
+  selectedSquare!: SquareComponent;
+  selectedPiece!: Piece;
   pieceSelected: boolean = false;
-  selectedPieceColor:PieceColor | undefined;
-  showPotentialMoves:boolean|undefined;
+  selectedPieceColor!:PieceColor;
+  showPotentialMoves!:boolean;
   
-  constructor() {
+  constructor(private gameService: GameServiceService) {
   }
 
   ngOnInit(): void {
@@ -110,7 +114,7 @@ export class BoardComponent implements OnInit, Board {
       this.enPassant = enPassantSquare;
     }
     else {
-      this.enPassant = undefined;
+      
     }
 
     this.fiftyMoveDrawCount = +input[4];
@@ -215,6 +219,22 @@ export class BoardComponent implements OnInit, Board {
     console.log("selected square component");
     console.log(square);
     
+    if(square.potentialMoveMark){
+      let moveString = this.selectedSquare.toChessCoord() + square.toChessCoord();
+      let newMove: MoveRequest = {
+        gameId: this.gameId,
+        boardId: this.boardId,
+        newMove: moveString,
+        currentState: this.boardStateData
+
+      }
+      this.makeMove(newMove);
+    }
+    let currentColor:PieceColor = this.isWhiteTurn? PieceColor.White : PieceColor.Black;
+    console.log("currentColor: "+currentColor);
+    if(square.occupyingPiece?.colorOfPiece != currentColor){
+      return;
+    }
     if(this.pieceSelected && this.selectedSquare==square){
       this.pieceSelected = false;
       this.showPotentialMoves = false;
@@ -255,6 +275,37 @@ export class BoardComponent implements OnInit, Board {
               rightLimit = toCol;
             }
 
+        } // first opponent piece should be the limit of the potential moves.
+        else if(this.squares[toRow][toCol].occupyingPiece
+          && this.squares[toRow][toCol].occupyingPiece?.colorOfPiece != this.selectedPieceColor
+          && ( (toRow>upperLimit) || (toRow<lowerLimit) || (toCol<leftLimit) || (toCol>rightLimit) )){
+            if((7 - square.row)>toRow&&toRow>lowerLimit){
+              lowerLimit = toRow;
+            }else if((7 - square.row)<toRow&&toRow<upperLimit){
+              upperLimit = toRow;
+            }
+            if(square.col>toCol && toCol>leftLimit){
+              leftLimit = toCol;
+            }else if(square.col<toCol && toCol<upperLimit){
+              rightLimit = toCol;
+            }
+            this.squares[toRow][toCol].potentialMoveMark = true;
+            console.log("affected square:");
+            console.log(this.squares[toRow][toCol]);    
+        }
+        else if(move.mustCapture){
+          console.log("move must capture");
+          console.log(move);
+          if(this.squares[toRow][toCol].occupyingPiece &&this.squares[toRow][toCol].occupyingPiece?.colorOfPiece!=currentColor){
+            this.squares[toRow][toCol].potentialMoveMark = true;
+            console.log("affected square:");
+            console.log(this.squares[toRow][toCol]);            
+          }
+          else if(this.enPassant?.row==toRow && this.enPassant?.col == toCol){
+            this.squares[toRow][toCol].potentialMoveMark = true;
+            console.log("affected square:");
+            console.log(this.squares[toRow][toCol]);
+          }
         }
         else{
           this.squares[toRow][toCol].potentialMoveMark = true;
@@ -278,8 +329,21 @@ export class BoardComponent implements OnInit, Board {
     }
   }
 
-  makeMove(toMake: Move): Board {
-    throw new Error("Method not implemented.");
+  reloadBoard():void{
+    this.initialize();
+    this.setupBoard();
+  }
+
+  makeMove(toMake: MoveRequest): void {
+    console.log(toMake)
+    this.gameService.makeMove(toMake)
+    .subscribe(board=>{
+      console.log(board);
+      this.gameId = board.gameId
+      this.boardId = board.boardId
+      this.boardStateData = board.state;
+      this.reloadBoard();
+    })
   }
   isValidMove(toCheck: Move): boolean {
     throw new Error("Method not implemented.");

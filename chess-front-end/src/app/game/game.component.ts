@@ -7,9 +7,11 @@ import { GameServiceService } from '../game-service.service';
   styleUrls: ['./game.component.scss']
 })
 export class GameComponent implements OnInit {
-  
+  gameId!:number;
+  boardId!:number;
   boardState!:string;
   started!: boolean;
+  newGame!: boolean;
 
   constructor(
   
@@ -21,7 +23,8 @@ export class GameComponent implements OnInit {
   }
   
   loadBoardData(event:any):void{
-    
+    this.gameId = event.gameId;
+    this.boardId = event.boardId;
     this.boardState = event.state.trim();
     console.log("board: "+this.boardState);
     this.started = true;

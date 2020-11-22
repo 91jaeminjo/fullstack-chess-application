@@ -3,7 +3,10 @@
     [class.black] = "(row+col)%2==1"
     [class.selected] = "selected || potentialMoveMark"
     [class.whitePieceSelected] = "whiteSelected || potentialMoveMark"
-    [class.blackPieceSelected] = "blackSelected">
+    [class.blackPieceSelected] = "blackSelected"
+    [class.sameSide] = "occupyingPiece &&( ( isWhiteTurn&&(occupyingPiece.colorOfPiece==0) ) || (!isWhiteTurn && (occupyingPiece.colorOfPiece==1)) )"
+    
+    >
     
     <div *ngIf="occupyingPiece">
         <img src="{{image}}">
