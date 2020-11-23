@@ -12,13 +12,14 @@ import { WhiteKnight } from "../chess-model/chess-pieces/WhiteKnight";
 import { WhitePawn } from "../chess-model/chess-pieces/WhitePawn";
 import { WhiteQueen } from "../chess-model/chess-pieces/WhiteQueen";
 import { WhiteRook } from "../chess-model/chess-pieces/WhiteRook";
-import { Coord, Outcome, PieceColor } from "../chess-model/game-definitions/GameData";
+import { Coord, Outcome, PieceColor, PieceType } from "../chess-model/game-definitions/GameData";
 import { Board } from "../chess-model/game-definitions/game-interface/Board";
 import { Move } from "../chess-model/game-definitions/game-interface/Move";
 import { Piece } from "../chess-model/game-definitions/game-interface/Piece";
 import { SquareComponent } from '../square/square.component';
 import { GameServiceService } from '../game-service.service';
 import { MoveRequest } from '../chess-model/game-definitions/game-interface/MoveRequest';
+import { Square } from '../chess-model/game-definitions/game-interface/Square';
 
 
 @Component({
@@ -26,7 +27,7 @@ import { MoveRequest } from '../chess-model/game-definitions/game-interface/Move
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.scss']
 })
-export class BoardComponent implements OnInit, Board {
+export class BoardComponent implements OnInit {
   @Input() gameId!: number;
   @Input() boardId!: number;
   @Input() boardStateData!: string; // starting state "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq e3 0 1";
@@ -36,7 +37,7 @@ export class BoardComponent implements OnInit, Board {
   wqCastle!: boolean;
   bkCastle!: boolean;
   bqCastle!: boolean;
-  enPassant!: SquareComponent;
+  enPassant!: SquareComponent | undefined;
   fiftyMoveDrawCount!: number;
   turn!: number;
   isInCheck!: boolean;
@@ -46,6 +47,7 @@ export class BoardComponent implements OnInit, Board {
   selectedPiece!: Piece;
   pieceSelected: boolean = false;
   selectedPieceColor!:PieceColor;
+  currentTurnColor!:PieceColor;
   showPotentialMoves!:boolean;
   
   constructor(private gameService: GameServiceService) {
@@ -64,14 +66,21 @@ export class BoardComponent implements OnInit, Board {
 
     this.squares = [];
     this.isWhiteTurn = input[1] == 'w';
+    this.currentTurnColor = this.isWhiteTurn? PieceColor.White:PieceColor.Black;
     this.wkCastle = input[2].includes('K');
     this.wqCastle = input[2].includes('Q');
     this.bkCastle = input[2].includes('k');
     this.bqCastle = input[2].includes('q');
     if (input[3] != '-') {
+      console.log("input[3]");
+      console.log(input[3]);
+      console.log("input[3].slice(0, 1)");
+      console.log(input[3].slice(0, 1));
+      console.log("input[3].slice(1)");
+      console.log(input[3].slice(1));
       let colLetter: string = input[3].slice(0, 1);
       let colNum: Coord = 0;
-      let rowNum: Coord = +input[3].slice(1, 1) as Coord;
+      let rowNum: Coord = +(input[3].slice(1))-1 as Coord;
       switch (colLetter) {
         case 'a': {
           colNum = 0;
@@ -109,12 +118,14 @@ export class BoardComponent implements OnInit, Board {
 
       let enPassantSquare = new SquareComponent();
       enPassantSquare.row = rowNum as Coord;
-      enPassantSquare.row = rowNum as Coord;
+      enPassantSquare.col = colNum as Coord;
       
       this.enPassant = enPassantSquare;
+      console.log("this.enPassant: ");
+      console.log(this.enPassant);
     }
     else {
-      
+      this.enPassant =undefined;
     }
 
     this.fiftyMoveDrawCount = +input[4];
@@ -122,7 +133,6 @@ export class BoardComponent implements OnInit, Board {
     this.isInCheck = false;
     this.condition = Outcome.InProgress;
   }
-
 
   setupBoard():void{
     this.squares =[];
@@ -146,9 +156,8 @@ export class BoardComponent implements OnInit, Board {
           }
         }
         else {
-          let squarePiece: Piece = new WhitePawn();
-          console.log("charLine[j] has piece");
-          console.log(charLine[j]);
+          let squarePiece: Piece | undefined;
+          
           switch (charLine[j]) {
             case 'K': {
               console.log("White King");
@@ -226,13 +235,13 @@ export class BoardComponent implements OnInit, Board {
         boardId: this.boardId,
         newMove: moveString,
         currentState: this.boardStateData
-
       }
       this.makeMove(newMove);
     }
-    let currentColor:PieceColor = this.isWhiteTurn? PieceColor.White : PieceColor.Black;
-    console.log("currentColor: "+currentColor);
-    if(square.occupyingPiece?.colorOfPiece != currentColor){
+    
+    console.log("currentColor: "+this.currentTurnColor);
+    // should not be able to click opponent's pieces.
+    if(square.occupyingPiece?.colorOfPiece != this.currentTurnColor){
       return;
     }
     if(this.pieceSelected && this.selectedSquare==square){
@@ -249,14 +258,89 @@ export class BoardComponent implements OnInit, Board {
       this.selectedPieceColor = square.occupyingPiece.colorOfPiece;
       console.log(this.selectedPiece);
       console.log(this.selectedPiece.colorOfPiece);
-      let potentialMoves:Move[] = this.selectedPiece.potentialMoves(square);
-      let upperLimit: number = 8;
-      let lowerLimit: number = -1;
-      let leftLimit: number = -1;
-      let rightLimit: number = 8;
+      if(square.occupyingPiece?.typeOfPiece==PieceType.Pawn){
+        this.pawnMoves(square);
+      }
+      else if(square.occupyingPiece?.typeOfPiece == PieceType.King){
+        this.kingMoves(square);
+      }
+      else{
+        this.validMoves(square);
+      }
+      
+    }
+    else{
+      this.pieceSelected =false; 
+    }
+    
+  }
 
+  kingMoves(square:SquareComponent):void{
+
+  }
+  pawnMoves(square:SquareComponent): void{
+    let potentialMoves:Move[] = this.selectedPiece.potentialMoves(square);
+    let upperLimit: number = 8;
+    let lowerLimit: number = -1;
+    let leftLimit: number = -1;
+    let rightLimit: number = 8;
+    for(let move of potentialMoves){
+      console.log("potential move:");
+      console.log("move");
+      console.log(move);
+      let toRow: Coord | number = 7-move.to.row;
+      let toCol: Coord | number = move.to.col;
+      this.showPotentialMoves = true;
+      
+      if(move.mustCapture){
+        this.enPassantCheck(move, toRow as Coord, toCol as Coord);
+        console.log("move must capture");
+        console.log(move);
+        if(this.squares[toRow][toCol].occupyingPiece &&this.squares[toRow][toCol].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+          this.squares[toRow][toCol].potentialMoveMark = true;
+          console.log("affected square:");
+          console.log(this.squares[toRow][toCol]);            
+        }
+      }
+      else if(this.squares[toRow][toCol].occupyingPiece
+        || ( (toRow>upperLimit) || (toRow<lowerLimit) || (toCol<leftLimit) || (toCol>rightLimit) )){
+          if((7 - square.row)>toRow&&toRow>lowerLimit){
+            lowerLimit = toRow;
+          }else if((7 - square.row)<toRow&&toRow<upperLimit){
+            upperLimit = toRow;
+          }
+          if(square.col>toCol && toCol>leftLimit){
+            leftLimit = toCol;
+          }else if(square.col<toCol && toCol<upperLimit){
+            rightLimit = toCol;
+          }
+
+      } 
+      else{
+        this.squares[toRow][toCol].potentialMoveMark = true;
+        console.log("affected square:");
+        console.log(this.squares[toRow][toCol]);
+      }
+    }
+  }
+  validMoves(square: SquareComponent): void {
+    let potentialMoves:Move[] = this.selectedPiece.potentialMoves(square);
+    let upperLimit: number = 8;
+    let lowerLimit: number = -1;
+    let leftLimit: number = -1;
+    let rightLimit: number = 8;
+      
+      if(square.occupyingPiece?.typeOfPiece==PieceType.Bishop){
+        this.diagonalMoves(square);
+        return;
+      }
+      if(square.occupyingPiece?.typeOfPiece == PieceType.Queen){
+        this.diagonalMoves(square);
+      }
       //console.log(potentialMoves);
       for(let move of potentialMoves){
+        console.log("potential move:");
+        console.log("move");
         console.log(move);
         let toRow: Coord | number = 7-move.to.row;
         let toCol: Coord | number = move.to.col;
@@ -275,10 +359,11 @@ export class BoardComponent implements OnInit, Board {
               rightLimit = toCol;
             }
 
-        } // first opponent piece should be the limit of the potential moves.
+        } 
+        // first opponent piece should be the limit of the potential moves.
         else if(this.squares[toRow][toCol].occupyingPiece
           && this.squares[toRow][toCol].occupyingPiece?.colorOfPiece != this.selectedPieceColor
-          && ( (toRow>upperLimit) || (toRow<lowerLimit) || (toCol<leftLimit) || (toCol>rightLimit) )){
+          || ( (toRow>upperLimit) || (toRow<lowerLimit) || (toCol<leftLimit) || (toCol>rightLimit) )){
             if((7 - square.row)>toRow&&toRow>lowerLimit){
               lowerLimit = toRow;
             }else if((7 - square.row)<toRow&&toRow<upperLimit){
@@ -289,37 +374,121 @@ export class BoardComponent implements OnInit, Board {
             }else if(square.col<toCol && toCol<upperLimit){
               rightLimit = toCol;
             }
+            
             this.squares[toRow][toCol].potentialMoveMark = true;
             console.log("affected square:");
             console.log(this.squares[toRow][toCol]);    
+          
         }
-        else if(move.mustCapture){
-          console.log("move must capture");
-          console.log(move);
-          if(this.squares[toRow][toCol].occupyingPiece &&this.squares[toRow][toCol].occupyingPiece?.colorOfPiece!=currentColor){
-            this.squares[toRow][toCol].potentialMoveMark = true;
-            console.log("affected square:");
-            console.log(this.squares[toRow][toCol]);            
-          }
-          else if(this.enPassant?.row==toRow && this.enPassant?.col == toCol){
-            this.squares[toRow][toCol].potentialMoveMark = true;
-            console.log("affected square:");
-            console.log(this.squares[toRow][toCol]);
-          }
-        }
+        
         else{
           this.squares[toRow][toCol].potentialMoveMark = true;
           console.log("affected square:");
           console.log(this.squares[toRow][toCol]);
         }
+        
+      }
+  }
+  
+  
+  diagonalMoves(pos: SquareComponent): void{
+    //top left 
+    //col (-) rows (+)
+    for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row + offSet <= 7; offSet++ ){
+        
+      if(this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece){
+        if(this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
+          this.squares[7-(pos.row +offSet)][pos.col-offSet].potentialMoveMark = true;
+          break;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        this.squares[7-(pos.row +offSet)][pos.col-offSet].potentialMoveMark = true;
       }
     }
-    else{
-      this.pieceSelected =false; 
-    }
+    // console.log("top left added");
+    // console.log(toReturn);
     
-  }
+    //top right
+    //col (+) rows (+)
+    for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row + offSet <= 7; offSet++ ){
+      if(this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece){
+        if(this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
+          this.squares[7-(pos.row +offSet)][pos.col+offSet].potentialMoveMark = true;
+          break;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        this.squares[7-(pos.row +offSet)][pos.col+offSet].potentialMoveMark = true;
+      }
+    }
 
+    // console.log("top right added");
+    // console.log(toReturn);
+
+    //bottom left
+    //col (-)  rows (-)
+    for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row - offSet >= 0; offSet++ ){
+      if(this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece){
+        if(this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
+          this.squares[7-(pos.row -offSet)][pos.col-offSet].potentialMoveMark = true;
+          break;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        this.squares[7-(pos.row -offSet)][pos.col-offSet].potentialMoveMark = true;
+      }
+    }
+
+    // console.log("bottom left added");
+    // console.log(toReturn);
+
+    //bottom right
+    //col (+) row(-)
+    for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row - offSet >= 0; offSet++ ){
+      if(this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece){
+        if(this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
+          this.squares[7-(pos.row -offSet)][pos.col+offSet].potentialMoveMark = true;
+          break;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        this.squares[7-(pos.row -offSet)][pos.col+offSet].potentialMoveMark = true;
+      }
+    }
+    //console.log("bottom right added");
+    //console.log(toReturn);
+  }
+  enPassantCheck(move:Move, toRow: Coord, toCol: Coord): void{
+    if(this.enPassant && (this.selectedPiece.typeOfPiece == PieceType.Pawn ) ){
+      console.log("move: ");
+      console.log(move);
+      console.log("this.enPassant?.row==toRow && this.enPassant?.col == toCol");
+      console.log(this.enPassant?.row==toRow && this.enPassant?.col == toCol);
+      console.log("this.enpassant.row: "+this.enPassant.row);
+      console.log("this.enpassant.col: "+this.enPassant.col);
+      console.log("toRow: "+toRow);
+      console.log("toCol: "+toCol);
+      if(this.enPassant?.row==(7-toRow) && this.enPassant?.col == toCol){
+        this.squares[toRow][toCol].potentialMoveMark = true;
+      }
+      
+      console.log("affected square:");
+      console.log(this.squares[toRow][toCol]);
+    }
+  }
   removeHighlight():void{
     this.showPotentialMoves= false;
     for(let i = 0; i<8;i++){
@@ -361,10 +530,6 @@ export class BoardComponent implements OnInit, Board {
       this.boardStateData = board.state;
       this.reloadBoard();
     })
-  }
-
-  isValidMove(toCheck: Move): boolean {
-    throw new Error("Method not implemented.");
-  }
+  } 
 
 }

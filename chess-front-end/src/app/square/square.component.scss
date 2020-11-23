@@ -45,21 +45,20 @@
     color: white;
 }
 
-.selected{
-    background-color: #d42f2f80;
-}
+
 
 .whitePieceSelected{
     border-width: 2px;
     border-style: solid;
     border-color: red;
-    background-color: #d42f2f80;
+    background-color: rgb(253, 202, 202, 50);
 }
 
 .blackPieceSelected{
     border-width: 2px;
     border-style: solid;
     border-color: navy;
+    background-color: rgb(71, 71, 143, 50);
 }
 
 .sameSide{

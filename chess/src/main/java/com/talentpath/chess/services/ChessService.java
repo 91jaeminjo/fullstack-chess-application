@@ -73,7 +73,7 @@ public class ChessService {
         testBoard.loadFromFen(currentState);
 
         if(!prevState.equals(currentState)){
-            throw new InvalidInputException("The state of board received doesn't match with the state in record.");
+            throw new InvalidInputException("The state of board received doesn't match with the state in record.\nOn record: "+prevState+"\nreceived: "+currentState);
         }
         Board board = new Board();
         board.loadFromFen(prevState);

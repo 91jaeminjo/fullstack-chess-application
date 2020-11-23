@@ -4,8 +4,8 @@
         (click)="onSelect(square)">
             <app-square 
             [selected] = "square === selectedSquare&&pieceSelected" 
-            [whiteSelected] = "square === selectedSquare && selectedPieceColor == 0 && pieceSelected || squares[i][j].potentialMoveMark"
-            [blackSelected] = "square === selectedSquare && selectedPieceColor == 1 && pieceSelected"
+            [whiteSelected] = "square === selectedSquare && selectedPieceColor == 0 && pieceSelected || (squares[i][j].potentialMoveMark && isWhiteTurn)"
+            [blackSelected] = "square === selectedSquare && selectedPieceColor == 1 && pieceSelected || (squares[i][j].potentialMoveMark && !isWhiteTurn)"
             [row]="i" 
             [col]="j"
             [isWhiteTurn]="isWhiteTurn"

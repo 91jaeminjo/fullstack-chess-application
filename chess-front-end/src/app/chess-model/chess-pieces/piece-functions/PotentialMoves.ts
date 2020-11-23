@@ -59,11 +59,8 @@ export function whitePawnPotentialMoves(pos: SquareComponent): Move[] {
                 toReturn.push(rightCapture);
             }
         }
-
     }
     else {
-        
-        
         if (pos.row === 1) {
             let toDoubleMove = new SquareComponent();
             toDoubleMove.row = pos.row+2 as Coord;
@@ -91,7 +88,6 @@ export function whitePawnPotentialMoves(pos: SquareComponent): Move[] {
         };
         toReturn.push(singleMove);
 
-        
         if (pos.col > 0) {
             let toLeftCapture = new SquareComponent();
             toLeftCapture.row = pos.row + 1 as Coord;
