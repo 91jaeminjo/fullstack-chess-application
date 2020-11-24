@@ -21,7 +21,7 @@ export class GameFormComponent implements OnInit {
   // })
 
   gameList!: number[];
-
+  gameOver!: boolean;
   @Output() boardData = new EventEmitter<string>();
   constructor(private gameService: GameServiceService) { }
 
@@ -41,6 +41,7 @@ export class GameFormComponent implements OnInit {
     this.gameService.getGameById(this.gameId)
     .subscribe(game=>{
       console.log(game);
+      this.gameOver = game.gameOver;
       this.retrieveBoardById(game.boardId);
     });
   }
@@ -49,6 +50,7 @@ export class GameFormComponent implements OnInit {
     this.gameService.getBoardById(boardId)
     .subscribe(board=>{
       console.log(board);
+      board.gameOver = this.gameOver;
       this.boardData.emit(board);
     })
   }

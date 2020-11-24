@@ -12,7 +12,7 @@ export class GameComponent implements OnInit {
   boardState!:string;
   started!: boolean;
   newGame!: boolean;
-
+  gameOver!:boolean;
   constructor(
   
 
@@ -26,6 +26,7 @@ export class GameComponent implements OnInit {
     this.gameId = event.gameId;
     this.boardId = event.boardId;
     this.boardState = event.state.trim();
+    this.gameOver = event.gameOver;
     console.log("board: "+this.boardState);
     this.started = true;
   }

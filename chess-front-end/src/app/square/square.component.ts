@@ -109,7 +109,7 @@ export class SquareComponent implements OnInit {
         break;
       }
     }
-    console.log("this row: "+ this.row);
+    
     toReturn += (this.row + 1)+"";
     return toReturn;
   }

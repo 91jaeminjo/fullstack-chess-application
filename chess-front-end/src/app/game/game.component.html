@@ -3,7 +3,8 @@
 <h2 class="text-center">Welcome to my Chess Application!</h2>
 <br/>
 <br/>
-
+<br/>
+<br/>
 <div class="row">
     <div class="col-1"></div>
     <div class="col-4">
@@ -27,5 +28,5 @@
 
 </div>
 <div *ngIf="started">
-    <app-board [gameId]="gameId" [boardId]="boardId" [boardStateData]="boardState"></app-board>
+    <app-board [gameId]="gameId" [boardId]="boardId" [boardStateData]="boardState" [gameOver]="gameOver"></app-board>
 </div>

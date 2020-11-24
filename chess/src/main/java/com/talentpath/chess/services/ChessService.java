@@ -68,7 +68,7 @@ public class ChessService {
         String prevState = boardDataToUpdate.getState().trim();
 
         // verify move
-        String currentState = moveRequest.getCurrentState();
+        String currentState = moveRequest.getCurrentState().trim();
         Board testBoard = new Board();
         testBoard.loadFromFen(currentState);
 

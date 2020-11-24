@@ -31,6 +31,7 @@ export class BoardComponent implements OnInit {
   @Input() gameId!: number;
   @Input() boardId!: number;
   @Input() boardStateData!: string; // starting state "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq e3 0 1";
+  @Input() gameOver!:boolean;
   squares!: SquareComponent[][];
   isWhiteTurn!: boolean;
   wkCastle!: boolean;
@@ -227,7 +228,12 @@ export class BoardComponent implements OnInit {
   onSelect(square: SquareComponent):void{
     console.log("selected square component");
     console.log(square);
-    
+    // If game over
+
+
+    // If king in check
+
+
     if(square.potentialMoveMark){
       let moveString = this.selectedSquare.toChessCoord() + square.toChessCoord();
       let newMove: MoveRequest = {
@@ -258,14 +264,33 @@ export class BoardComponent implements OnInit {
       this.selectedPieceColor = square.occupyingPiece.colorOfPiece;
       console.log(this.selectedPiece);
       console.log(this.selectedPiece.colorOfPiece);
-      if(square.occupyingPiece?.typeOfPiece==PieceType.Pawn){
-        this.pawnMoves(square);
-      }
-      else if(square.occupyingPiece?.typeOfPiece == PieceType.King){
-        this.kingMoves(square);
-      }
-      else{
-        this.validMoves(square);
+
+      switch(square.occupyingPiece.typeOfPiece){
+        case (PieceType.Pawn):{
+          this.pawnMoves(square);
+          break;
+        }
+        case (PieceType.Bishop):{
+          this.bishopMoves(square);
+          break;
+        }
+        case (PieceType.Knight):{
+          this.knightMoves(square);
+          break;
+        }
+        case (PieceType.Rook):{
+          this.rookMoves(square);
+          break;
+        }
+        case (PieceType.Queen):{
+          this.bishopMoves(square);
+          this.rookMoves(square);
+          break;
+        }
+        case (PieceType.King):{
+          this.kingMoves(square);
+          break;
+        }
       }
       
     }
@@ -275,8 +300,351 @@ export class BoardComponent implements OnInit {
     
   }
 
-  kingMoves(square:SquareComponent):void{
+  kingInCheck(square: SquareComponent):boolean {
+    if(this.diagonalAttack(square)){
+      console.log("diagonally being attacked");
+    }
+    if(this.orthogonalAttack(square)){
+      console.log("orthogonally being attacked");
+    }
+    if(this.knightAttack(square)){
+      console.log("being attacked by knight");
+    }
+    if(this.pawnAttack(square)){
+      console.log("being attacked by pawn");
+    }
+    return true;
+  }
 
+  diagonalAttack(pos: SquareComponent): boolean{
+    //top left 
+    //rows (+) col (-)
+    for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row + offSet <= 7; offSet++ ){
+      if(this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece 
+        && this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece?.typeOfPiece==PieceType.Bishop
+        || this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece?.typeOfPiece==PieceType.Queen){
+          return true;  
+        }
+        else{
+          break;
+        }
+      }
+    }
+    //top right
+    //rows (+) col (+)
+    for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row + offSet <= 7; offSet++ ){
+      if(this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece 
+      && this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece?.typeOfPiece==PieceType.Bishop
+        || this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece?.typeOfPiece==PieceType.Queen ){
+          return true;
+        }
+        else{
+          break;
+        }      
+      }
+    }
+
+    //bottom left
+    //rows (-) col (-)
+    for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row - offSet >= 0; offSet++ ){
+      if(this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece 
+      && this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece?.typeOfPiece==PieceType.Bishop
+        || this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece?.typeOfPiece==PieceType.Queen ){
+          return true;
+        }
+        else{
+          break;
+        }
+      }
+    }
+
+    //bottom right
+    //row(-) col (+)
+    for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row - offSet >= 0; offSet++ ){
+      if(this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece       
+      && this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece?.typeOfPiece== PieceType.Bishop
+        || this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece?.typeOfPiece== PieceType.Queen ){
+          return true;
+        }
+        else{
+          break;
+        }
+      }
+    }
+    return false;
+  }
+  orthogonalAttack(pos: SquareComponent):boolean{
+    //up 
+    //rows (+)
+    for( let offSet : number = 1; pos.row + offSet <= 7; offSet++ ){
+      if(this.squares[7-(pos.row +offSet)][pos.col].occupyingPiece
+         && this.squares[7-(pos.row +offSet)][pos.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(pos.row +offSet)][pos.col].occupyingPiece?.typeOfPiece==PieceType.Rook
+         || this.squares[7-(pos.row +offSet)][pos.col].occupyingPiece?.typeOfPiece==PieceType.Queen){
+          return true;  
+        }
+        else{
+          break;
+        }
+      }
+    }
+  
+  //down
+  //rows (-)
+  for( let offSet : number = 1; pos.row - offSet >= 0; offSet++ ){
+    if(this.squares[7-(pos.row -offSet)][pos.col].occupyingPiece
+    && this.squares[7-(pos.row -offSet)][pos.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      if(this.squares[7-(pos.row -offSet)][pos.col].occupyingPiece?.typeOfPiece==PieceType.Rook
+        || this.squares[7-(pos.row -offSet)][pos.col].occupyingPiece?.typeOfPiece==PieceType.Queen){
+        return true;  
+      }
+      else{
+        break;
+      }
+    }
+  }
+  
+  //left
+  //col (-)
+  for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row <= 7; offSet++ ){
+    if(this.squares[7-pos.row][pos.col -offSet].occupyingPiece
+      && this.squares[7-pos.row][pos.col -offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      if(this.squares[7-pos.row][pos.col -offSet].occupyingPiece?.typeOfPiece==PieceType.Rook
+        || this.squares[7-pos.row][pos.col -offSet].occupyingPiece?.typeOfPiece==PieceType.Queen){
+        return true;  
+      }
+      else{
+        break;
+      }
+    }
+  }
+  
+  //right
+  //col(+)
+  for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row <= 7; offSet++ ){
+    if(this.squares[7-pos.row][pos.col +offSet].occupyingPiece
+      && this.squares[7-pos.row][pos.col +offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      if(this.squares[7-pos.row][pos.col +offSet].occupyingPiece?.typeOfPiece==PieceType.Rook
+        || this.squares[7-pos.row][pos.col +offSet].occupyingPiece?.typeOfPiece==PieceType.Queen){
+        return true;  
+      }
+      else{
+        break;
+      }
+    }
+  }
+  // console.log("right added");
+  // console.log(toReturn);
+  return false;
+  }
+  knightAttack(pos: SquareComponent):boolean{
+    let move = new SquareComponent();
+      
+    move.row = pos.row + 2 as Coord;
+    move.col = pos.col - 1 as Coord;
+    //move1 : row + 2, col - 1
+    if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece
+      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor ){
+        if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
+          return true;  
+        }
+      }
+    }
+    
+    move.row = pos.row + 2 as Coord;
+    move.col = pos.col + 1 as Coord;
+    //move2 : row + 2, col + 1
+    if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece
+      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
+          return true;  
+        }
+      }
+    }
+    
+    move.row = pos.row - 2 as Coord;
+    move.col = pos.col - 1 as Coord;
+    //move3 : row - 2, col - 1
+    if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece
+      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
+          return true;  
+        }
+      }
+    }
+
+    move.row = pos.row - 2 as Coord;
+    move.col = pos.col + 1 as Coord;
+    //move4 : row - 2, col + 1
+    if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece
+      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
+          return true;  
+        }
+      }
+    }
+
+    move.row = pos.row - 1 as Coord;
+    move.col = pos.col - 2 as Coord;
+    //move5 : row - 1, col - 2
+    if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece
+      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
+          return true;  
+        }
+      }
+    }
+    
+    move.row = pos.row + 1 as Coord;
+    move.col = pos.col - 2 as Coord;
+    //move6 : row + 1, col - 2
+    if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece
+      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
+          return true;  
+        }
+      }
+    }
+
+    move.row = pos.row - 1 as Coord;
+    move.col = pos.col + 2 as Coord;
+    //move7 : row - 1, col + 2
+    if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece
+      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
+          return true;  
+        }
+      }
+    }
+
+    move.row = pos.row + 1 as Coord;
+    move.col = pos.col + 2 as Coord;
+    //move8 : row + 1, col + 2
+    if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece
+      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
+          return true;  
+        }
+      }
+    }
+    return false;
+  }
+  pawnAttack(pos:SquareComponent):boolean{
+    if(this.currentTurnColor==PieceColor.White){
+      if(this.squares[7-(pos.row+1)][pos.col+1].occupyingPiece
+      &&this.squares[7-(pos.row+1)][pos.col+1].occupyingPiece?.colorOfPiece==PieceColor.Black){
+        if(this.squares[7-(pos.row+1)][pos.col].occupyingPiece?.typeOfPiece==PieceType.Pawn){
+          return true;  
+        }
+      }
+      if(this.squares[7-(pos.row+1)][pos.col-1].occupyingPiece
+      &&this.squares[7-(pos.row+1)][pos.col-1].occupyingPiece?.colorOfPiece==PieceColor.Black){
+        if(this.squares[7-(pos.row+1)][pos.col-1].occupyingPiece?.typeOfPiece==PieceType.Pawn){
+          return true;  
+        }
+      }
+    }
+    else{
+      if(this.squares[7-(pos.row-1)][pos.col+1].occupyingPiece
+      &&this.squares[7-(pos.row-1)][pos.col+1].occupyingPiece?.colorOfPiece==PieceColor.White){
+        if(this.squares[7-(pos.row-1)][pos.col].occupyingPiece?.typeOfPiece==PieceType.Pawn){
+          return true;  
+        }
+      }
+      if(this.squares[7-(pos.row-1)][pos.col-1].occupyingPiece
+      &&this.squares[7-(pos.row-1)][pos.col-1].occupyingPiece?.colorOfPiece==PieceColor.White){
+        if(this.squares[7-(pos.row-1)][pos.col-1].occupyingPiece?.typeOfPiece==PieceType.Pawn){
+          return true;  
+        }
+      }
+    }
+    return false;
+  }
+
+  kingMoves(square:SquareComponent):void{
+    let row: number = 7-square.row;
+    let col: number = square.col;
+    let potentialMoves:Move[] = this.selectedPiece.potentialMoves(square);
+    let upperLimit: number = 8;
+    let lowerLimit: number = -1;
+    let leftLimit: number = -1;
+    let rightLimit: number = 8;
+    for(let move of potentialMoves){
+
+      let toRow: Coord | number = 7-move.to.row;
+      let toCol: Coord | number = move.to.col;
+      this.showPotentialMoves = true;
+      if(this.squares[toRow][toCol].occupyingPiece
+        && this.squares[toRow][toCol].occupyingPiece?.colorOfPiece == this.selectedPieceColor
+        || ( (toRow>upperLimit) || (toRow<lowerLimit) || (toCol<leftLimit) || (toCol>rightLimit) )){
+        
+      }       
+      else{
+        this.squares[toRow][toCol].potentialMoveMark = true;
+      }
+    }
+    // Castling check.
+    if(this.kingInCheck(square)){
+      return;
+    }
+    if(this.currentTurnColor==PieceColor.White){
+      if(this.wkCastle){
+        // check if these squares are un-occupied and not being attacked.
+        if(!this.squares[row][col+1].occupyingPiece 
+              &&!this.squares[row][col+2].occupyingPiece){
+          if(!this.kingInCheck(this.squares[row][col+1])
+            && !this.kingInCheck(this.squares[row][col+2])){
+              this.squares[row][col+2].potentialMoveMark = true;
+          }
+        }
+      }
+      if(this.wqCastle){
+        // check if these squares are un-occupied and not being attacked.
+        if(!this.squares[row][col-1].occupyingPiece 
+              &&!this.squares[row][col-2].occupyingPiece
+              &&!this.squares[row][col-3].occupyingPiece){
+          if(!this.kingInCheck(this.squares[row][col-1])
+              && !this.kingInCheck(this.squares[row][col-2])
+              && !this.kingInCheck(this.squares[row][col-3]) ){
+            this.squares[row][col-2].potentialMoveMark = true;
+          }
+        }
+      }
+    }
+    else{
+      if(this.bkCastle){
+        if(!this.squares[row][col+1].occupyingPiece 
+            &&!this.squares[row][col+2].occupyingPiece){
+          if(!this.kingInCheck(this.squares[row][col+1])
+            && !this.kingInCheck(this.squares[row][col+2])){
+              this.squares[row][col+2].potentialMoveMark = true;
+          }
+      }
+      }
+      if(this.bqCastle){
+        if(!this.squares[row][col-1].occupyingPiece 
+            &&!this.squares[row][col-2].occupyingPiece
+            &&!this.squares[row][col-3].occupyingPiece){
+          if(!this.kingInCheck(this.squares[row][col-1])
+              && !this.kingInCheck(this.squares[row][col-2])
+              && !this.kingInCheck(this.squares[row][col-3]) ){
+            this.squares[row][col-2].potentialMoveMark = true;
+          }
+        }
+      }
+    }
   }
   pawnMoves(square:SquareComponent): void{
     let potentialMoves:Move[] = this.selectedPiece.potentialMoves(square);
@@ -323,25 +691,106 @@ export class BoardComponent implements OnInit {
       }
     }
   }
-  validMoves(square: SquareComponent): void {
+  bishopMoves(pos: SquareComponent): void{
+    //top left 
+    //rows (+) col (-)
+    for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row + offSet <= 7; offSet++ ){
+      if(this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece){
+        if(this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
+          this.squares[7-(pos.row +offSet)][pos.col-offSet].potentialMoveMark = true;
+          break;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        this.squares[7-(pos.row +offSet)][pos.col-offSet].potentialMoveMark = true;
+      }
+    }
+    //top right
+    //rows (+) col (+)
+    for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row + offSet <= 7; offSet++ ){
+      if(this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece){
+        if(this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
+          this.squares[7-(pos.row +offSet)][pos.col+offSet].potentialMoveMark = true;
+          break;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        this.squares[7-(pos.row +offSet)][pos.col+offSet].potentialMoveMark = true;
+      }
+    }
+
+    //bottom left
+    //rows (-) col (-)
+    for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row - offSet >= 0; offSet++ ){
+      if(this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece){
+        if(this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
+          this.squares[7-(pos.row -offSet)][pos.col-offSet].potentialMoveMark = true;
+          break;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        this.squares[7-(pos.row -offSet)][pos.col-offSet].potentialMoveMark = true;
+      }
+    }
+
+    //bottom right
+    //row(-) col (+)
+    for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row - offSet >= 0; offSet++ ){
+      if(this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece){
+        if(this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
+          this.squares[7-(pos.row -offSet)][pos.col+offSet].potentialMoveMark = true;
+          break;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        this.squares[7-(pos.row -offSet)][pos.col+offSet].potentialMoveMark = true;
+      }
+    }
+  }
+  knightMoves(square: SquareComponent): void{
+    let potentialMoves:Move[] = this.selectedPiece.potentialMoves(square);
+    let upperLimit: number = 8;
+    let lowerLimit: number = -1;
+    let leftLimit: number = -1;
+    let rightLimit: number = 8;
+
+      for(let move of potentialMoves){
+        let toRow: Coord | number = 7-move.to.row;
+        let toCol: Coord | number = move.to.col;
+        this.showPotentialMoves = true;
+        if(this.squares[toRow][toCol].occupyingPiece
+          && this.squares[toRow][toCol].occupyingPiece?.colorOfPiece == this.selectedPieceColor
+          || ( (toRow>upperLimit) || (toRow<lowerLimit) || (toCol<leftLimit) || (toCol>rightLimit) )){
+        }        
+        else{
+          this.squares[toRow][toCol].potentialMoveMark = true;
+        }
+      }
+  }
+  rookMoves(square: SquareComponent): void {
     let potentialMoves:Move[] = this.selectedPiece.potentialMoves(square);
     let upperLimit: number = 8;
     let lowerLimit: number = -1;
     let leftLimit: number = -1;
     let rightLimit: number = 8;
       
-      if(square.occupyingPiece?.typeOfPiece==PieceType.Bishop){
-        this.diagonalMoves(square);
-        return;
-      }
-      if(square.occupyingPiece?.typeOfPiece == PieceType.Queen){
-        this.diagonalMoves(square);
-      }
       //console.log(potentialMoves);
       for(let move of potentialMoves){
-        console.log("potential move:");
-        console.log("move");
-        console.log(move);
+        // console.log("potential move:");
+        // console.log("move");
+        // console.log(move);
         let toRow: Coord | number = 7-move.to.row;
         let toCol: Coord | number = move.to.col;
         this.showPotentialMoves = true;
@@ -376,101 +825,21 @@ export class BoardComponent implements OnInit {
             }
             
             this.squares[toRow][toCol].potentialMoveMark = true;
-            console.log("affected square:");
-            console.log(this.squares[toRow][toCol]);    
+            // console.log("affected square:");
+            // console.log(this.squares[toRow][toCol]);    
           
         }
         
         else{
           this.squares[toRow][toCol].potentialMoveMark = true;
-          console.log("affected square:");
-          console.log(this.squares[toRow][toCol]);
+          // console.log("affected square:");
+          // console.log(this.squares[toRow][toCol]);
         }
-        
       }
   }
   
   
-  diagonalMoves(pos: SquareComponent): void{
-    //top left 
-    //col (-) rows (+)
-    for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row + offSet <= 7; offSet++ ){
-        
-      if(this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece){
-        if(this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
-          this.squares[7-(pos.row +offSet)][pos.col-offSet].potentialMoveMark = true;
-          break;
-        }
-        else{
-          break;
-        }
-      }
-      else{
-        this.squares[7-(pos.row +offSet)][pos.col-offSet].potentialMoveMark = true;
-      }
-    }
-    // console.log("top left added");
-    // console.log(toReturn);
-    
-    //top right
-    //col (+) rows (+)
-    for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row + offSet <= 7; offSet++ ){
-      if(this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece){
-        if(this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
-          this.squares[7-(pos.row +offSet)][pos.col+offSet].potentialMoveMark = true;
-          break;
-        }
-        else{
-          break;
-        }
-      }
-      else{
-        this.squares[7-(pos.row +offSet)][pos.col+offSet].potentialMoveMark = true;
-      }
-    }
-
-    // console.log("top right added");
-    // console.log(toReturn);
-
-    //bottom left
-    //col (-)  rows (-)
-    for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row - offSet >= 0; offSet++ ){
-      if(this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece){
-        if(this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
-          this.squares[7-(pos.row -offSet)][pos.col-offSet].potentialMoveMark = true;
-          break;
-        }
-        else{
-          break;
-        }
-      }
-      else{
-        this.squares[7-(pos.row -offSet)][pos.col-offSet].potentialMoveMark = true;
-      }
-    }
-
-    // console.log("bottom left added");
-    // console.log(toReturn);
-
-    //bottom right
-    //col (+) row(-)
-    for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row - offSet >= 0; offSet++ ){
-      if(this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece){
-        if(this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.selectedPieceColor){
-          this.squares[7-(pos.row -offSet)][pos.col+offSet].potentialMoveMark = true;
-          break;
-        }
-        else{
-          break;
-        }
-      }
-      else{
-        this.squares[7-(pos.row -offSet)][pos.col+offSet].potentialMoveMark = true;
-      }
-    }
-    //console.log("bottom right added");
-    //console.log(toReturn);
-  }
+  
   enPassantCheck(move:Move, toRow: Coord, toCol: Coord): void{
     if(this.enPassant && (this.selectedPiece.typeOfPiece == PieceType.Pawn ) ){
       console.log("move: ");
@@ -510,7 +879,7 @@ export class BoardComponent implements OnInit {
       console.log(board);
       this.gameId = board.gameId
       this.boardId = board.boardId
-      this.boardStateData = board.state;
+      this.boardStateData = board.state.trim();
       this.reloadBoard();
     })
   }
@@ -527,7 +896,7 @@ export class BoardComponent implements OnInit {
       console.log(board);
       this.gameId = board.gameId;
       this.boardId = board.boardId;
-      this.boardStateData = board.state;
+      this.boardStateData = board.state.trim();
       this.reloadBoard();
     })
   } 
