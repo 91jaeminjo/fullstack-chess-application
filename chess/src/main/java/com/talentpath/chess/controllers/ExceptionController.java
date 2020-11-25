@@ -1,6 +1,5 @@
 package com.talentpath.chess.controllers;
 
-import com.talentpath.chess.daos.ChessDao;
 import com.talentpath.chess.exceptions.ChessDaoException;
 import com.talentpath.chess.exceptions.InvalidInputException;
 import com.talentpath.chess.exceptions.NullInputException;

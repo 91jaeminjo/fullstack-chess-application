@@ -2,7 +2,6 @@ package com.talentpath.chess.dtos;
 
 public class MoveRequest {
     private Integer gameId;
-    private Integer boardId;
     private String newMove;
     private String currentState;
 
@@ -12,14 +11,6 @@ public class MoveRequest {
 
     public void setGameId(Integer gameId) {
         this.gameId = gameId;
-    }
-
-    public Integer getBoardId() {
-        return boardId;
-    }
-
-    public void setBoardId(Integer boardId) {
-        this.boardId = boardId;
     }
 
     public String getNewMove() {

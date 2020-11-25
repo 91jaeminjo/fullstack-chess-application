@@ -13,13 +13,12 @@ import { WhitePawn } from "../chess-model/chess-pieces/WhitePawn";
 import { WhiteQueen } from "../chess-model/chess-pieces/WhiteQueen";
 import { WhiteRook } from "../chess-model/chess-pieces/WhiteRook";
 import { Coord, Outcome, PieceColor, PieceType } from "../chess-model/game-definitions/GameData";
-import { Board } from "../chess-model/game-definitions/game-interface/Board";
 import { Move } from "../chess-model/game-definitions/game-interface/Move";
 import { Piece } from "../chess-model/game-definitions/game-interface/Piece";
 import { SquareComponent } from '../square/square.component';
 import { GameServiceService } from '../game-service.service';
 import { MoveRequest } from '../chess-model/game-definitions/game-interface/MoveRequest';
-import { Square } from '../chess-model/game-definitions/game-interface/Square';
+import { ActivatedRoute } from '@angular/router';
 
 
 @Component({
@@ -29,16 +28,17 @@ import { Square } from '../chess-model/game-definitions/game-interface/Square';
 })
 export class BoardComponent implements OnInit {
   @Input() gameId!: number;
-  @Input() boardId!: number;
-  @Input() boardStateData!: string; // starting state "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq e3 0 1";
+  @Input() FEN!: string; // starting state "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq e3 0 1";
   @Input() gameOver!:boolean;
   squares!: SquareComponent[][];
+  
   isWhiteTurn!: boolean;
   wkCastle!: boolean;
   wqCastle!: boolean;
   bkCastle!: boolean;
   bqCastle!: boolean;
   enPassant!: SquareComponent | undefined;
+  currentTurn!:PieceColor;
   fiftyMoveDrawCount!: number;
   turn!: number;
   isInCheck!: boolean;
@@ -48,37 +48,31 @@ export class BoardComponent implements OnInit {
   selectedPiece!: Piece;
   pieceSelected: boolean = false;
   selectedPieceColor!:PieceColor;
-  currentTurnColor!:PieceColor;
+  
   showPotentialMoves!:boolean;
   
-  constructor(private gameService: GameServiceService) {
+  constructor(private route: ActivatedRoute, private gameService: GameServiceService) {
   }
 
   ngOnInit(): void {
-    this.initialize();
-    this.setupBoard();
+    this.retrieveGameById();
   }
 
   initialize():void {
     console.log("from board component");
-    console.log("board state: "+this.boardStateData);
-    let input: string[] = this.boardStateData.split(" ");
+    console.log("FEN: "+this.FEN);
+    let input: string[] = this.FEN.split(" ");
     this.state = input[0].split("/").reverse();
 
     this.squares = [];
     this.isWhiteTurn = input[1] == 'w';
-    this.currentTurnColor = this.isWhiteTurn? PieceColor.White:PieceColor.Black;
+    this.currentTurn = this.isWhiteTurn? PieceColor.White:PieceColor.Black;
     this.wkCastle = input[2].includes('K');
     this.wqCastle = input[2].includes('Q');
     this.bkCastle = input[2].includes('k');
     this.bqCastle = input[2].includes('q');
     if (input[3] != '-') {
-      console.log("input[3]");
-      console.log(input[3]);
-      console.log("input[3].slice(0, 1)");
-      console.log(input[3].slice(0, 1));
-      console.log("input[3].slice(1)");
-      console.log(input[3].slice(1));
+      
       let colLetter: string = input[3].slice(0, 1);
       let colNum: Coord = 0;
       let rowNum: Coord = +(input[3].slice(1))-1 as Coord;
@@ -238,16 +232,15 @@ export class BoardComponent implements OnInit {
       let moveString = this.selectedSquare.toChessCoord() + square.toChessCoord();
       let newMove: MoveRequest = {
         gameId: this.gameId,
-        boardId: this.boardId,
         newMove: moveString,
-        currentState: this.boardStateData
+        currentState: this.FEN
       }
       this.makeMove(newMove);
     }
     
-    console.log("currentColor: "+this.currentTurnColor);
+    console.log("currentColor: "+this.currentTurn);
     // should not be able to click opponent's pieces.
-    if(square.occupyingPiece?.colorOfPiece != this.currentTurnColor){
+    if(square.occupyingPiece?.colorOfPiece != this.currentTurn){
       return;
     }
     if(this.pieceSelected && this.selectedSquare==square){
@@ -321,7 +314,7 @@ export class BoardComponent implements OnInit {
     //rows (+) col (-)
     for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row + offSet <= 7; offSet++ ){
       if(this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece 
-        && this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        && this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece?.typeOfPiece==PieceType.Bishop
         || this.squares[7-(pos.row +offSet)][pos.col-offSet].occupyingPiece?.typeOfPiece==PieceType.Queen){
           return true;  
@@ -335,7 +328,7 @@ export class BoardComponent implements OnInit {
     //rows (+) col (+)
     for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row + offSet <= 7; offSet++ ){
       if(this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece 
-      && this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      && this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece?.typeOfPiece==PieceType.Bishop
         || this.squares[7-(pos.row +offSet)][pos.col+offSet].occupyingPiece?.typeOfPiece==PieceType.Queen ){
           return true;
@@ -350,7 +343,7 @@ export class BoardComponent implements OnInit {
     //rows (-) col (-)
     for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row - offSet >= 0; offSet++ ){
       if(this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece 
-      && this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      && this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece?.typeOfPiece==PieceType.Bishop
         || this.squares[7-(pos.row -offSet)][pos.col-offSet].occupyingPiece?.typeOfPiece==PieceType.Queen ){
           return true;
@@ -365,7 +358,7 @@ export class BoardComponent implements OnInit {
     //row(-) col (+)
     for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row - offSet >= 0; offSet++ ){
       if(this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece       
-      && this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      && this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece?.typeOfPiece== PieceType.Bishop
         || this.squares[7-(pos.row -offSet)][pos.col+offSet].occupyingPiece?.typeOfPiece== PieceType.Queen ){
           return true;
@@ -382,7 +375,7 @@ export class BoardComponent implements OnInit {
     //rows (+)
     for( let offSet : number = 1; pos.row + offSet <= 7; offSet++ ){
       if(this.squares[7-(pos.row +offSet)][pos.col].occupyingPiece
-         && this.squares[7-(pos.row +offSet)][pos.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+         && this.squares[7-(pos.row +offSet)][pos.col].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(pos.row +offSet)][pos.col].occupyingPiece?.typeOfPiece==PieceType.Rook
          || this.squares[7-(pos.row +offSet)][pos.col].occupyingPiece?.typeOfPiece==PieceType.Queen){
           return true;  
@@ -397,7 +390,7 @@ export class BoardComponent implements OnInit {
   //rows (-)
   for( let offSet : number = 1; pos.row - offSet >= 0; offSet++ ){
     if(this.squares[7-(pos.row -offSet)][pos.col].occupyingPiece
-    && this.squares[7-(pos.row -offSet)][pos.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+    && this.squares[7-(pos.row -offSet)][pos.col].occupyingPiece?.colorOfPiece!=this.currentTurn){
       if(this.squares[7-(pos.row -offSet)][pos.col].occupyingPiece?.typeOfPiece==PieceType.Rook
         || this.squares[7-(pos.row -offSet)][pos.col].occupyingPiece?.typeOfPiece==PieceType.Queen){
         return true;  
@@ -412,7 +405,7 @@ export class BoardComponent implements OnInit {
   //col (-)
   for( let offSet : number = 1; pos.col - offSet >= 0 && pos.row <= 7; offSet++ ){
     if(this.squares[7-pos.row][pos.col -offSet].occupyingPiece
-      && this.squares[7-pos.row][pos.col -offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      && this.squares[7-pos.row][pos.col -offSet].occupyingPiece?.colorOfPiece!=this.currentTurn){
       if(this.squares[7-pos.row][pos.col -offSet].occupyingPiece?.typeOfPiece==PieceType.Rook
         || this.squares[7-pos.row][pos.col -offSet].occupyingPiece?.typeOfPiece==PieceType.Queen){
         return true;  
@@ -427,7 +420,7 @@ export class BoardComponent implements OnInit {
   //col(+)
   for( let offSet : number = 1; pos.col + offSet <= 7 && pos.row <= 7; offSet++ ){
     if(this.squares[7-pos.row][pos.col +offSet].occupyingPiece
-      && this.squares[7-pos.row][pos.col +offSet].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      && this.squares[7-pos.row][pos.col +offSet].occupyingPiece?.colorOfPiece!=this.currentTurn){
       if(this.squares[7-pos.row][pos.col +offSet].occupyingPiece?.typeOfPiece==PieceType.Rook
         || this.squares[7-pos.row][pos.col +offSet].occupyingPiece?.typeOfPiece==PieceType.Queen){
         return true;  
@@ -448,8 +441,7 @@ export class BoardComponent implements OnInit {
     move.col = pos.col - 1 as Coord;
     //move1 : row + 2, col - 1
     if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
-      if(this.squares[7-(move.row)][move.col].occupyingPiece
-      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor ){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurn ){
         if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
           return true;  
         }
@@ -460,8 +452,7 @@ export class BoardComponent implements OnInit {
     move.col = pos.col + 1 as Coord;
     //move2 : row + 2, col + 1
     if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
-      if(this.squares[7-(move.row)][move.col].occupyingPiece
-      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
           return true;  
         }
@@ -473,7 +464,7 @@ export class BoardComponent implements OnInit {
     //move3 : row - 2, col - 1
     if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
       if(this.squares[7-(move.row)][move.col].occupyingPiece
-      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
           return true;  
         }
@@ -484,8 +475,7 @@ export class BoardComponent implements OnInit {
     move.col = pos.col + 1 as Coord;
     //move4 : row - 2, col + 1
     if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
-      if(this.squares[7-(move.row)][move.col].occupyingPiece
-      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
           return true;  
         }
@@ -496,8 +486,7 @@ export class BoardComponent implements OnInit {
     move.col = pos.col - 2 as Coord;
     //move5 : row - 1, col - 2
     if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
-      if(this.squares[7-(move.row)][move.col].occupyingPiece
-      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
           return true;  
         }
@@ -508,8 +497,7 @@ export class BoardComponent implements OnInit {
     move.col = pos.col - 2 as Coord;
     //move6 : row + 1, col - 2
     if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
-      if(this.squares[7-(move.row)][move.col].occupyingPiece
-      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
           return true;  
         }
@@ -520,8 +508,7 @@ export class BoardComponent implements OnInit {
     move.col = pos.col + 2 as Coord;
     //move7 : row - 1, col + 2
     if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
-      if(this.squares[7-(move.row)][move.col].occupyingPiece
-      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
           return true;  
         }
@@ -532,8 +519,7 @@ export class BoardComponent implements OnInit {
     move.col = pos.col + 2 as Coord;
     //move8 : row + 1, col + 2
     if(move.row<=7&&move.row>=0 && move.col<=7 && move.col>=0){
-      if(this.squares[7-(move.row)][move.col].occupyingPiece
-      &&this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+      if(this.squares[7-(move.row)][move.col].occupyingPiece?.colorOfPiece!=this.currentTurn){
         if(this.squares[7-(move.row)][move.col].occupyingPiece?.typeOfPiece==PieceType.Knight){
           return true;  
         }
@@ -542,7 +528,7 @@ export class BoardComponent implements OnInit {
     return false;
   }
   pawnAttack(pos:SquareComponent):boolean{
-    if(this.currentTurnColor==PieceColor.White){
+    if(this.currentTurn==PieceColor.White){
       if(this.squares[7-(pos.row+1)][pos.col+1].occupyingPiece
       &&this.squares[7-(pos.row+1)][pos.col+1].occupyingPiece?.colorOfPiece==PieceColor.Black){
         if(this.squares[7-(pos.row+1)][pos.col].occupyingPiece?.typeOfPiece==PieceType.Pawn){
@@ -599,7 +585,7 @@ export class BoardComponent implements OnInit {
     if(this.kingInCheck(square)){
       return;
     }
-    if(this.currentTurnColor==PieceColor.White){
+    if(this.currentTurn==PieceColor.White){
       if(this.wkCastle){
         // check if these squares are un-occupied and not being attacked.
         if(!this.squares[row][col+1].occupyingPiece 
@@ -664,7 +650,7 @@ export class BoardComponent implements OnInit {
         this.enPassantCheck(move, toRow as Coord, toCol as Coord);
         console.log("move must capture");
         console.log(move);
-        if(this.squares[toRow][toCol].occupyingPiece &&this.squares[toRow][toCol].occupyingPiece?.colorOfPiece!=this.currentTurnColor){
+        if(this.squares[toRow][toCol].occupyingPiece &&this.squares[toRow][toCol].occupyingPiece?.colorOfPiece!=this.currentTurn){
           this.squares[toRow][toCol].potentialMoveMark = true;
           console.log("affected square:");
           console.log(this.squares[toRow][toCol]);            
@@ -872,31 +858,46 @@ export class BoardComponent implements OnInit {
     this.setupBoard();
   }
 
+  retrieveGameById(): void {
+    this.gameId = +this.route.snapshot.paramMap.get('id')!;
+    console.log("submit");
+    console.log(this.gameId);
+    this.gameService.getGameById(this.gameId)
+    .subscribe(game=>{
+      console.log(game);
+      this.gameId = game.gameId;
+      this.FEN = game.state;
+      this.gameOver = game.gameOver;
+      this.initialize();
+      this.setupBoard();
+    });
+  }
+
+
+
   makeMove(toMake: MoveRequest): void {
     console.log(toMake)
     this.gameService.makeMove(toMake)
     .subscribe(board=>{
       console.log(board);
-      this.gameId = board.gameId
-      this.boardId = board.boardId
-      this.boardStateData = board.state.trim();
+      this.gameId = board.gameId;
+      this.FEN = board.state.trim();
       this.reloadBoard();
     })
   }
 
   undoMove(): void{
     console.log("undoing move");
+    console.log(this.FEN);
     let toUndo: any ={
       gameId: this.gameId,
-      boardId: this.boardId
-
+      currentState: this.FEN
     }
     this.gameService.undoMove(toUndo)
     .subscribe(board=>{
       console.log(board);
       this.gameId = board.gameId;
-      this.boardId = board.boardId;
-      this.boardStateData = board.state.trim();
+      this.FEN = board.state?.trim();
       this.reloadBoard();
     })
   } 

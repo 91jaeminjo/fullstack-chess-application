@@ -8,26 +8,31 @@ import { GameServiceService } from '../game-service.service';
 })
 export class GameComponent implements OnInit {
   gameId!:number;
-  boardId!:number;
-  boardState!:string;
-  started!: boolean;
+  FEN!:string;
+  begin!: boolean;
   newGame!: boolean;
   gameOver!:boolean;
-  constructor(
-  
-
-  ) { }
+  constructor( private gameService: GameServiceService ) { }
 
   ngOnInit(): void {
     
   }
   
-  loadBoardData(event:any):void{
+  beginNewGame():void{
+    this.gameService.beginGame()
+    .subscribe(game=>{
+      this.gameId = game.gameId;
+      this.FEN = game.state;
+      this.gameOver = game.gameOver;
+      this.begin = true;
+    })
+  }
+
+  loadGameData(event:any):void{
     this.gameId = event.gameId;
-    this.boardId = event.boardId;
-    this.boardState = event.state.trim();
+    this.FEN = event.state.trim();
     this.gameOver = event.gameOver;
-    console.log("board: "+this.boardState);
-    this.started = true;
+    console.log("board: "+this.FEN);
+    
   }
 }

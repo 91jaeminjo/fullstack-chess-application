@@ -1,4 +1,4 @@
-<div class="container" [hidden]="started">
+<div class="container" [hidden]="begin">
 
 <h2 class="text-center">Welcome to my Chess Application!</h2>
 <br/>
@@ -11,22 +11,18 @@
         <h3>Start a new game of Chess.</h3>
         <br/>
         <br/>
-        <button class="btn btn-primary">Start a new Game</button>
+        <button class="btn btn-primary" (click)="beginNewGame()">Start a new Game</button>
+        
     </div>
     <div class="col-2"></div>
     <div class="col-4">
-        <!-- <h3>Load a previous game.</h3>
-        <select class="selectpicker">
-            <option *ngFor="let game of gameList" [value]="game">{{game}}</option>
-        </select>
-        <button class="btn" (click)="loadGame()">load game</button> -->
-        <app-game-form (boardData)="loadBoardData($event)"></app-game-form>
+        <app-game-list></app-game-list>
     </div>
     <div class="col-1"></div>
 </div>
 
 
 </div>
-<div *ngIf="started">
-    <app-board [gameId]="gameId" [boardId]="boardId" [boardStateData]="boardState" [gameOver]="gameOver"></app-board>
+<div *ngIf="begin" class="container d-flex justify-content-center">
+    <a class="btn btn-primary" routerLink="/game/{{gameId}}">Game Id: {{gameId}}</a>
 </div>

@@ -1,174 +1,167 @@
 package com.talentpath.chess.services;
 
 import com.github.bhlangonijr.chesslib.Board;
+import com.github.bhlangonijr.chesslib.Side;
+import com.github.bhlangonijr.chesslib.game.Game;
 import com.github.bhlangonijr.chesslib.move.Move;
 import com.github.bhlangonijr.chesslib.move.MoveGenerator;
 import com.github.bhlangonijr.chesslib.move.MoveGeneratorException;
 import com.github.bhlangonijr.chesslib.move.MoveList;
-import com.talentpath.chess.daos.ChessDao;
+import com.talentpath.chess.daos.*;
+import com.talentpath.chess.dtos.GameView;
 import com.talentpath.chess.dtos.MoveRequest;
 import com.talentpath.chess.dtos.UndoRequest;
 import com.talentpath.chess.exceptions.ChessDaoException;
 import com.talentpath.chess.exceptions.InvalidInputException;
 import com.talentpath.chess.exceptions.NullInputException;
-import com.talentpath.chess.models.BoardData;
-import com.talentpath.chess.models.Game;
-import com.talentpath.chess.models.MoveHistory;
+import com.talentpath.chess.models.GameData;
+import com.talentpath.chess.models.ChessMove;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ChessService {
 
-    ChessDao dao;
+    @Autowired
+    GameDataRepository gameDataRepository;
 
     @Autowired
-    public ChessService(ChessDao dao){
-        this.dao = dao;
+    ChessMoveRepository chessMoveRepository;
+
+
+
+    public GameView beginChessGame() throws NullInputException, ChessDaoException {
+        GameData gameDataToAdd = new GameData();
+        gameDataToAdd.setGameOver(false);
+        gameDataToAdd = gameDataRepository.saveAndFlush(gameDataToAdd);
+        GameView gameView = new GameView(gameDataToAdd);
+        gameView.setState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        return gameView;
+
     }
 
-    public Game getGameById(Integer gameId) throws InvalidInputException {
-        return dao.getGameById(gameId);
+    public Board replayMoves(Integer currentGameId){
+        List<ChessMove> newAllMoves = chessMoveRepository.findByGameData_gameId(currentGameId);
+        Board board = new Board();
+        if(newAllMoves.size()==0){
+            return board;
+        }
+        Side side = Side.WHITE;
+
+        for(ChessMove chessMove : newAllMoves){
+            Move move = new Move(chessMove.getMove(),side);
+            board.doMove(move);
+            side = (side == Side.WHITE)? Side.BLACK: Side.WHITE;
+        }
+        return board;
     }
 
     public List<Integer> getAllGameIds() {
-        return dao.getAllGameIds();
+        return gameDataRepository.findAllGameIds();
     }
 
-    public Game beginChessGame() throws NullInputException, ChessDaoException {
-        BoardData boardDataToAdd = new BoardData();
-        BoardData boardDataAdded = dao.addBoardWithoutGameId(boardDataToAdd);
-        Game gameToAdd = new Game(boardDataAdded.getBoardId());
-        Game gameAdded = dao.addGame(gameToAdd);
-        boardDataAdded.setGameId(gameAdded.getGameId());
-        boolean successUpdatingBoard = dao.updateBoard(boardDataAdded);
-        if(successUpdatingBoard) {
-            return gameAdded;
+    public GameView getGameById(Integer gameId) {
+        GameData currentGameData = gameDataRepository.findById(gameId).orElse(null);
+        GameView gameView = new GameView();
+        if(currentGameData!=null){
+            gameView = new GameView(currentGameData);
+            Board board = replayMoves(gameId);
+            String stateInRecord = board.getFen().trim();
+            gameView.setState(stateInRecord);
         }
-        else{
-            throw new ChessDaoException("Rows affected by update board during beginChessGame was not 1.");
-        }
+
+
+        return gameView;
     }
 
-    public BoardData getBoardById(Integer boardId) throws InvalidInputException {
-        return dao.getBoardById(boardId);
-    }
-
-    public BoardData makeMove(MoveRequest moveRequest) throws InvalidInputException, NullInputException, MoveGeneratorException, ChessDaoException {
+    public GameView makeMove(MoveRequest moveRequest) throws EntityNotFoundException, InvalidInputException, NullInputException, MoveGeneratorException, ChessDaoException {
         int currentGameId = moveRequest.getGameId();
-        int currentBoardId = moveRequest.getBoardId();
+        GameData currentGameData = gameDataRepository.getOne(currentGameId);
+        GameView gameView = new GameView(currentGameData);
 
-        Game gameToUpdate = dao.getGameById(currentGameId);
-        BoardData boardDataToUpdate = dao.getBoardById(currentBoardId);
-        if(gameToUpdate.getGameOver()){
-            return boardDataToUpdate;
+        Board board = replayMoves(currentGameId);
+        String stateInRecord = board.getFen().trim();
+        if(currentGameData.getGameOver()){
+            gameView.setState(stateInRecord);
+            return gameView;
         }
-        String prevState = boardDataToUpdate.getState().trim();
-
         // verify move
-        String currentState = moveRequest.getCurrentState().trim();
-        Board testBoard = new Board();
-        testBoard.loadFromFen(currentState);
+        String stateFromInput = moveRequest.getCurrentState().trim();
 
-        if(!prevState.equals(currentState)){
-            throw new InvalidInputException("The state of board received doesn't match with the state in record.\nOn record: "+prevState+"\nreceived: "+currentState);
+        if(!stateInRecord.equals(stateFromInput)){
+            throw new InvalidInputException("The FEN state of input doesn't match the FEN state of record.\n" +
+                    "FEN record: "+stateInRecord+".\n" +
+                    "FEN input: "+stateFromInput+".");
         }
-        Board board = new Board();
-        board.loadFromFen(prevState);
         MoveList moves = MoveGenerator.generateLegalMoves(board);
-        String newMove = moveRequest.getNewMove();
+        String requestedMove = moveRequest.getNewMove();
 
-        Move moveMade = null;
+        Move newMove = null;
         boolean legalMove = false;
         for (Move move : moves) {
-
-            if(move.toString().equals(newMove)){
-                moveMade = move;
+            if(move.toString().equals(requestedMove)){
+                newMove = move;
                 legalMove = true;
                 break;
             }
-
         }
         if(legalMove == false){
-
-            return boardDataToUpdate;
+            gameView.setState(stateInRecord);
+            return gameView;
         }
-
-        board.doMove(moveMade);
+        gameView.setLastMove(requestedMove);
+        board.doMove(newMove);
         String newState = board.getFen();
+        gameView.setState(newState);
         if(board.isMated()){
-            gameToUpdate.setGameOver(true);
+            currentGameData.setGameOver(true);
+            gameDataRepository.save(currentGameData);
+            gameView.setGameOver(true);
         }
-        String prevStateSplit[] = prevState.split(" ");
+        int moveCount = board.getMoveCounter();
+
+        String prevStateSplit[] = stateInRecord.split(" ");
         int moveCountIndex = prevStateSplit.length;
         int adjustment = prevStateSplit[1].equals("w")? 1: 0;
         int newMoveCount = Integer.parseInt(prevStateSplit[moveCountIndex-1])*2 - adjustment;
-        MoveHistory moveHistory = new MoveHistory(currentGameId, newMoveCount, moveMade.toString() );
-        boolean successUpdatingMoveHistory = dao.addMove(moveHistory);
-        if(successUpdatingMoveHistory==false){
-            throw new ChessDaoException("Rows affected by update move history during make move was not 1.");
-        }
-        Integer prevBoardId = boardDataToUpdate.getBoardId();
-        BoardData newBoardData = new BoardData(currentGameId,prevBoardId,null,newState);
+        ChessMove chessMove = new ChessMove(currentGameData, newMoveCount, requestedMove );
+        chessMove =  chessMoveRepository.saveAndFlush(chessMove);
 
-        newBoardData = dao.addBoard(newBoardData);
-
-        int newBoardId = newBoardData.getBoardId();
-        boardDataToUpdate.setNextBoardId(newBoardId);
-        boolean successUpdatingBoard = dao.updateBoard(boardDataToUpdate);
-        if(successUpdatingBoard == false){
-            throw new ChessDaoException("Rows affected by update board during make move was not 1.");
-        }
-
-        gameToUpdate.setBoardId(newBoardId);
-        boolean successUpdatingGame = dao.updateGame(gameToUpdate);
-        if(successUpdatingGame == false){
-            throw new ChessDaoException("Rows affected by update game during make move was not 1.");
-        }
-        System.out.println("new Board Data");
-        System.out.println(newBoardData);
-        return newBoardData;
-
+        return gameView;
     }
 
-    public BoardData undoMove(MoveRequest moveRequest) throws InvalidInputException, NullInputException, ChessDaoException {
+    public GameView undoMove(UndoRequest moveRequest) throws InvalidInputException, NullInputException, ChessDaoException {
         int currentGameId = moveRequest.getGameId();
-        int currentBoardId = moveRequest.getBoardId();
+        GameData currentGameData = gameDataRepository.getOne(currentGameId);
+        GameView gameView = new GameView(currentGameData);
 
-        Game currentGame = dao.getGameById(currentGameId);
-        BoardData currentBoard = dao.getBoardById(currentBoardId);
-
-        if(currentGame.getGameOver()){
-            return currentBoard;
+        Board board = replayMoves(currentGameId);
+        String stateInRecord = board.getFen();
+        gameView.setState(stateInRecord);
+        if(currentGameData.getGameOver()){
+            return gameView;
         }
-
-        int prevBoardId = currentBoard.getPrevBoardId();
-        BoardData prevBoard = dao.getBoardById(prevBoardId);
-        prevBoard.setNextBoardId(null);
-        boolean successfulUpdatingPreviousBoard = dao.updateBoard(prevBoard);
-        if(successfulUpdatingPreviousBoard == false){
-            throw new ChessDaoException("Rows affected by update previous board during undo move was not 1.");
-        }
-        prevBoard = dao.getBoardById(prevBoardId);
-        List<MoveHistory> allMoves = dao.getAllMovesByGameId(currentGameId);
-        int mostRecentMove = allMoves.stream().mapToInt(move->move.getMoveCount()).max().orElse(0);
-        currentGame.setBoardId(prevBoardId);
-        boolean successfulUpdatingGame = dao.updateGame(currentGame);
-        if(successfulUpdatingGame == false){
-            throw new ChessDaoException("Rows affected by update game during undo move was not 1.");
-        }
-        UndoRequest undoRequest = new UndoRequest(currentGameId, mostRecentMove);
-        boolean successfulRemovingPreviousMove = dao.removeMove(undoRequest);
-        if(successfulRemovingPreviousMove == false){
-            throw new ChessDaoException("Rows affected by remove previous move during undo move was not 1.");
-        }
-        boolean successfulRemovingCurrentBoard = dao.removeBoard(currentBoardId);
-        if(successfulRemovingCurrentBoard == false){
-            throw new ChessDaoException("Rows affected by remove current board during undo move was not 1.");
+        String stateFromInput = moveRequest.getCurrentState().trim();
+        if(!stateInRecord.equals(stateFromInput)){
+            throw new InvalidInputException("The FEN state of input doesn't match the FEN state of record.\n" +
+                    "FEN record: "+stateInRecord+".\n" +
+                    "FEN input: "+stateFromInput+".");
         }
 
-        return prevBoard;
+        List<ChessMove> allMoves = chessMoveRepository.findByGameData_gameId(currentGameId);
+        if(allMoves.size()>0) {
+            ChessMove mostRecentMove = allMoves.stream().max(Comparator.comparingInt(ChessMove::getMoveCount)).orElse(null);
+
+            chessMoveRepository.delete(mostRecentMove);
+            board.undoMove();
+            gameView.setState(board.getFen());
+        }
+
+        return gameView;
     }
 }

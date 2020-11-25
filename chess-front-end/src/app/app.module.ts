@@ -8,7 +8,7 @@ import { BoardComponent } from './board/board.component';
 import { SquareComponent } from './square/square.component';
 import { GameComponent } from './game/game.component';
 import { FormsModule } from '@angular/forms';
-import { GameFormComponent } from './game-form/game-form.component';
+import { GameListComponent } from './game-list/game-list.component';
 
 @NgModule({
   declarations: [
@@ -16,7 +16,7 @@ import { GameFormComponent } from './game-form/game-form.component';
     BoardComponent,
     SquareComponent,
     GameComponent,
-    GameFormComponent
+    GameListComponent
   ],
   imports: [
     BrowserModule,

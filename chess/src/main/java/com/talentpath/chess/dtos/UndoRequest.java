@@ -2,7 +2,7 @@ package com.talentpath.chess.dtos;
 
 public class UndoRequest {
     private Integer gameId;
-    private Integer moveNumber;
+    private String currentState;
 
     public Integer getGameId() {
         return gameId;
@@ -12,16 +12,11 @@ public class UndoRequest {
         this.gameId = gameId;
     }
 
-    public Integer getMoveNumber() {
-        return moveNumber;
+    public String getCurrentState() {
+        return currentState;
     }
 
-    public void setMoveNumber(Integer moveNumber) {
-        this.moveNumber = moveNumber;
-    }
-
-    public UndoRequest(Integer gameId, Integer moveNumber) {
-        this.gameId = gameId;
-        this.moveNumber = moveNumber;
+    public void setCurrentState(String currentState) {
+        this.currentState = currentState;
     }
 }

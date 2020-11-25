@@ -1,0 +1,13 @@
+<div class="container">
+
+  <h1>Load a Game</h1>
+    
+    <div>
+      <h2 for="gameId">All Games</h2>
+      <li *ngFor="let gameId of gameList">
+        
+        <a routerLink="/game/{{gameId}}">{{gameId}}</a>
+      </li>
+    </div>
+
+</div>
