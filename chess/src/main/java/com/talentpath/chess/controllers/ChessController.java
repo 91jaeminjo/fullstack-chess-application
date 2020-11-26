@@ -47,4 +47,9 @@ public class ChessController {
         return chessService.undoMove(moveRequest);
     }
 
+    @GetMapping("/promote")
+    public GameView promotePiece(){
+        return chessService.promotePawn();
+    }
+
 }

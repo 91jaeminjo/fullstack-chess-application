@@ -1,6 +1,6 @@
 .square{
-    height: 8vw;
-    width: 8vw;
+    height: 7vw;
+    width: 7vw;
     
     display: flex;
     justify-content: center;
@@ -37,11 +37,11 @@
 }
 
 .white{
-    background-color: #e8ebef;
+    background-color:rgb(227,193,111);    // #e8ebef;
     color: #7d8796;
 }
 .black{
-    background-color: #7d8796;
+    background-color: rgb(184,139,74);//#7d8796;
     color: white;
 }
 
@@ -50,15 +50,15 @@
 .whitePieceSelected{
     border-width: 2px;
     border-style: solid;
-    border-color: red;
-    background-color: rgb(253, 202, 202, 50);
+    border-color: white;
+    background-color: rgb(253, 202, 202, 100);
 }
 
 .blackPieceSelected{
     border-width: 2px;
     border-style: solid;
     border-color: navy;
-    background-color: rgb(71, 71, 143, 50);
+    background-color: rgb(71, 71, 143, 100);
 }
 
 .sameSide{

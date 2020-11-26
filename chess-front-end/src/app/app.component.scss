@@ -1,0 +1,31 @@
+body{
+    font-family: Akzidenz Grotesk;
+    
+}
+
+nav{
+    height:12vh;
+    vertical-align: middle;
+    .nav-title{
+        font-weight:bold;
+        font-size:1.7rem;
+        padding-left:25px;
+        cursor:default;
+        color:rgb(143, 143, 143);
+        
+    }
+    .nav-link{
+        margin-left:auto;
+        cursor:pointer;
+        color: rgb(143, 143, 143);
+        
+    }
+    .nav-text{
+        vertical-align: middle;
+        font-size:1.2rem;
+        &:hover{
+            color:rgb(243, 243, 243);
+        }
+        
+    }
+}

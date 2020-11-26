@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { Coord, PieceColor } from "../chess-model/game-definitions/GameData";
 import { Piece } from "../chess-model/game-definitions/game-interface/Piece";
 
@@ -19,6 +19,8 @@ export class SquareComponent implements OnInit {
   @Input() blackSelected?:boolean;
   @Input() potentialMoveMark?:boolean;
   @Input() isWhiteTurn?:boolean;
+  @Input() viewMode?:boolean;
+  
   image?:string;
   rowNum?:string = "";
   colLabel?:string = "";
@@ -34,7 +36,12 @@ export class SquareComponent implements OnInit {
   }
   setBoardLabel() : void{
     if(this.col==0){
-      this.rowNum =(8-this.row)+"";
+      if(this.viewMode){
+        this.rowNum =(8-this.row)+"";
+      } else{
+        this.rowNum = (this.row+1)+"";
+      }
+      
     }
     if(this.row==7){
       switch(this.col){

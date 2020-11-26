@@ -9,6 +9,7 @@ import { SquareComponent } from './square/square.component';
 import { GameComponent } from './game/game.component';
 import { FormsModule } from '@angular/forms';
 import { GameListComponent } from './game-list/game-list.component';
+import { CommonModule } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -20,6 +21,7 @@ import { GameListComponent } from './game-list/game-list.component';
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     AppRoutingModule,
     HttpClientModule,
     FormsModule

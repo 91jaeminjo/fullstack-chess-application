@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { GameServiceService } from '../game-service.service';
-import { Output, EventEmitter } from '@angular/core';
+import { Location } from '@angular/common';
+
 
 @Component({
   selector: 'app-game-list',
@@ -15,11 +16,22 @@ export class GameListComponent implements OnInit {
   
   gameList!: number[];
   
-  constructor(private gameService: GameServiceService) { }
+  constructor(
+    private gameService: GameServiceService,
+    private location: Location) { }
 
   ngOnInit(): void {
     this.getAllGameList();
   }
+
+  setColor(color:string):void{
+    this.color = color;
+  }
+
+  goBack():void{
+    this.location.back();
+  }
+
   getAllGameList(): void {
     this.gameService.getAllGameList()
       .subscribe(list => {

@@ -2,7 +2,6 @@ package com.talentpath.chess.services;
 
 import com.github.bhlangonijr.chesslib.Board;
 import com.github.bhlangonijr.chesslib.Side;
-import com.github.bhlangonijr.chesslib.game.Game;
 import com.github.bhlangonijr.chesslib.move.Move;
 import com.github.bhlangonijr.chesslib.move.MoveGenerator;
 import com.github.bhlangonijr.chesslib.move.MoveGeneratorException;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ChessService {
@@ -46,7 +44,9 @@ public class ChessService {
     }
 
     public Board replayMoves(Integer currentGameId){
-        List<ChessMove> newAllMoves = chessMoveRepository.findByGameData_gameId(currentGameId);
+
+        List<ChessMove> newAllMoves = chessMoveRepository.findByGameDataGameIdOrderByMoveCountAsc(currentGameId);
+
         Board board = new Board();
         if(newAllMoves.size()==0){
             return board;
@@ -153,7 +153,7 @@ public class ChessService {
                     "FEN input: "+stateFromInput+".");
         }
 
-        List<ChessMove> allMoves = chessMoveRepository.findByGameData_gameId(currentGameId);
+        List<ChessMove> allMoves = chessMoveRepository.findByGameDataGameIdOrderByMoveCountAsc(currentGameId);
         if(allMoves.size()>0) {
             ChessMove mostRecentMove = allMoves.stream().max(Comparator.comparingInt(ChessMove::getMoveCount)).orElse(null);
 
@@ -163,5 +163,19 @@ public class ChessService {
         }
 
         return gameView;
+    }
+
+    public GameView promotePawn(){
+        Board board = new Board();
+        board.loadFromFen("r1bq1bnr/pp1kpPp1/7p/2p5/4N3/2p5/PPQP1PPP/RNB1KB1R w KQ - 1 12");
+        Side side = Side.WHITE;
+
+        //board.
+        //board.doMove(move);
+        System.out.println(board.getFen());
+
+
+        return new GameView();
+
     }
 }

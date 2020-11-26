@@ -12,12 +12,20 @@ export class GameComponent implements OnInit {
   begin!: boolean;
   newGame!: boolean;
   gameOver!:boolean;
+  color?:string;
   constructor( private gameService: GameServiceService ) { }
 
   ngOnInit(): void {
     
   }
-  
+
+  setColor(color:string):void{
+    this.color = color;
+  }
+
+  back():void{
+    this.begin = false;
+  }
   beginNewGame():void{
     this.gameService.beginGame()
     .subscribe(game=>{

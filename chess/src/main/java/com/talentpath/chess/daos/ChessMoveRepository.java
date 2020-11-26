@@ -15,6 +15,6 @@ public interface ChessMoveRepository extends JpaRepository<ChessMove, Integer> {
             nativeQuery = true
     )
     List<ChessMove> getAllMovesByGameId(@Param("game_data_game_id") Integer game_data_game_id);
-
-    List<ChessMove> findByGameData_gameId(Integer currentGameId);
+    
+    List<ChessMove> findByGameDataGameIdOrderByMoveCountAsc(Integer currentGameId);
 }

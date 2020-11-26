@@ -1,18 +1,40 @@
-<div class="container justify-items-center board">
-    <div class="row justify-items-center align-items-center" *ngFor="let row of squares; index as i">
-        <div class="col" *ngFor="let square of row; index as j"
-        (click)="onSelect(square)">
-            <app-square 
-            [selected] = "square === selectedSquare&&pieceSelected" 
-            [whiteSelected] = "square === selectedSquare && selectedPieceColor == 0 && pieceSelected || (squares[i][j].potentialMoveMark && isWhiteTurn)"
-            [blackSelected] = "square === selectedSquare && selectedPieceColor == 1 && pieceSelected || (squares[i][j].potentialMoveMark && !isWhiteTurn)"
-            [row]="i" 
-            [col]="j"
-            [isWhiteTurn]="isWhiteTurn"
-            [occupyingPiece]="squares[i][j].occupyingPiece"></app-square>
+<div class="container board">
+  <div class="row">
+
+    <button class="btn btn-primary" (click)="undoMove()">Undo</button>
+    <button class="btn btn-success" (click)="flipView()">Flip View</button>
+
+  </div>
+
+  <br />
+  <br />
+
+  <div class="row">
+    <button class="btn btn-secondary" (click)="promoteTo('q')" [disabled]="!promotion">Queen</button>
+    <button class="btn btn-secondary" (click)="promoteTo('r')" [disabled]="!promotion">Rook</button>
+    <button class="btn btn-secondary" (click)="promoteTo('n')" [disabled]="!promotion">Knight</button>
+    <button class="btn btn-secondary" (click)="promoteTo('b')" [disabled]="!promotion">Bishop</button>
+    <h3>&nbsp;&nbsp;{{message}}</h3>
+  </div>
+
+  <br />
+  <br />
+  <div class="row">
+    <div class="col-1"></div>
+    <div class="col-9">
+      <div class="row justify-items-center align-items-center" *ngFor="let row of squares; index as i">
+        <div class="col" *ngFor="let square of row; index as j" (click)="onSelect(square)">
+          <app-square [selected]="square === selectedSquare&&pieceSelected"
+            [whiteSelected]="square === selectedSquare && selectedPieceColor == 0 && pieceSelected || (squares[i][j].potentialMoveMark && isWhiteTurn)"
+            [blackSelected]="square === selectedSquare && selectedPieceColor == 1 && pieceSelected || (squares[i][j].potentialMoveMark && !isWhiteTurn)"
+            [row]="i" [col]="j" [isWhiteTurn]="isWhiteTurn" [occupyingPiece]="squares[i][j].occupyingPiece"
+            [viewMode]="viewMode">
+          </app-square>
         </div>
+      </div>
     </div>
-    <button class="btn" (click)="undoMove()">Undo Move</button>
+    <div class="col-2"></div>
+
+  </div>
+
 </div>
-
-
