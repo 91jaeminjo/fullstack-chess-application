@@ -34,8 +34,9 @@ export class BoardComponent implements OnInit {
   message!: string;
   viewMode: boolean = true; // true = white, false = black;
   squares!: SquareComponent[][];
-  promotion : boolean = false;
-  promotePiece: string ="";
+  tempSquares!: SquareComponent[][]
+  promotion: boolean = false;
+  promotePiece: string = "";
   protedPiece!: string;
   isWhiteTurn!: boolean;
   wkCastle!: boolean;
@@ -63,44 +64,44 @@ export class BoardComponent implements OnInit {
     this.retrieveGameById();
   }
 
-  flipView(): void{
+  flipView(): void {
     this.viewMode = !this.viewMode;
     this.initialize();
     this.reloadBoard();
   }
-  checkPromotion():void{
+  checkPromotion(): void {
 
-    if(this.isWhiteTurn){
-      let row = (this.viewMode)? 1:6;
-      for(let i = 0; i<=7;i++){
-        if(this.squares[row][i].occupyingPiece?.typeOfPiece==PieceType.Pawn
-          &&this.squares[row][i].occupyingPiece?.colorOfPiece==PieceColor.White){
-          this.promotion=true;
-          console.log("white row: "+row);
-          console.log(this.squares[row][i]);
-          break;
+    if (this.isWhiteTurn) {
+      let row = 1;
+      for (let i = 0; i <= 7; i++) {
+        if (this.tempSquares[row][i].occupyingPiece?.typeOfPiece == PieceType.Pawn
+          && this.tempSquares[row][i].occupyingPiece?.colorOfPiece == PieceColor.White) {
+          this.promotion = true;
+          console.log("white row: " + row);
+          console.log(this.tempSquares[row][i]);
+          return;
         }
-        this.promotion=false;
+        
       }
-    } else{
-      let row = (this.viewMode)? 6:1;
-      for(let i = 0; i<=7;i++){
-        if(this.squares[row][i].occupyingPiece?.typeOfPiece==PieceType.Pawn
-          &&this.squares[row][i].occupyingPiece?.colorOfPiece==PieceColor.Black){
-          this.promotion=true;
-          console.log("black row: "+row);
-          console.log(this.squares[row][i]);
-          break;
+    } else {
+      let row = 6;
+      for (let i = 0; i <= 7; i++) {
+        if (this.tempSquares[row][i].occupyingPiece?.typeOfPiece == PieceType.Pawn
+          && this.tempSquares[row][i].occupyingPiece?.colorOfPiece == PieceColor.Black) {
+          this.promotion = true;
+          console.log("black row: " + row);
+          console.log(this.tempSquares[row][i]);
+          return;
         }
-        this.promotion=false;
       }
     }
-    console.log("this.promotion: "+this.promotion);
+    this.promotion = false;
+    console.log("this.promotion: " + this.promotion);
   }
-  promoteTo(type:string):void{
-    console.log("promotion: "+this.promotion);
+  promoteTo(type: string): void {
+    console.log("promotion: " + this.promotion);
     console.log(type);
-    this.promotePiece=type;
+    this.promotePiece = type;
   }
 
 
@@ -108,34 +109,28 @@ export class BoardComponent implements OnInit {
     console.log("from board component");
     console.log("FEN: " + this.FEN);
     let input: string[] = this.FEN.split(" ");
-    if(this.viewMode){
-      this.state = input[0].split("/").reverse();
-    }
-    else{
-      this.state = input[0].split("/")
-    }
-    
+    this.state = input[0].split("/").reverse();
 
     this.squares = [];
     this.isWhiteTurn = input[1] == 'w';
     this.currentTurn = this.isWhiteTurn ? PieceColor.White : PieceColor.Black;
     this.message = "";
-    if(this.gameOver){
+    if (this.gameOver) {
       this.message = "Game Over! ";
-      if(this.isWhiteTurn){
+      if (this.isWhiteTurn) {
         this.message += "Black Wins!";
       }
-      else{
+      else {
         this.message += "White Wins!";
       }
     }
-    else if(this.isWhiteTurn){
+    else if (this.isWhiteTurn) {
       this.message = "White's Turn.";
     }
-    else{
+    else {
       this.message = "Black's Turn.";
     }
-    console.log("message: "+this.message);
+    console.log("message: " + this.message);
     this.wkCastle = input[2].includes('K');
     this.wqCastle = input[2].includes('Q');
     this.bkCastle = input[2].includes('k');
@@ -205,7 +200,7 @@ export class BoardComponent implements OnInit {
       let charLine: string[] = this.state[i].split("");
       let index = 0;
       for (let j = 0; j < charLine.length; j++) {
-        
+
         if (!isNaN(Number(charLine[j]))) {
           let count = Number(charLine[j]);
           while (count > 0) {
@@ -223,7 +218,7 @@ export class BoardComponent implements OnInit {
 
           switch (charLine[j]) {
             case 'K': {
-              
+
               squarePiece = new WhiteKing();
               break;
             }
@@ -281,33 +276,53 @@ export class BoardComponent implements OnInit {
           squareLine.push(newSquare);
         }
       }
-      
-      this.squares.unshift(squareLine);
-            
+      if (this.viewMode) {
+        this.squares.unshift(squareLine);
+      } else {
+
+        this.squares.push(squareLine);
+      }
     }
+    if (this.viewMode) {
+      this.tempSquares = this.squares;
+    }
+    else {
+      this.tempSquares = this.flipBoard(this.squares);
+    }
+
     this.checkPromotion();
     console.log(this.squares);
+    console.log(this.tempSquares);
+
+  }
+
+  flipBoard(squaresArg: SquareComponent[][]): SquareComponent[][] {
+    let temp: SquareComponent[][] = [];
+    for (let i = 0; i < 8; i++) {
+      temp.unshift(squaresArg[i])
+    }
+    return temp;
   }
 
   onSelect(square: SquareComponent): void {
     console.log("selected square component");
     console.log(square);
+
+
     // If game over
-    if(this.gameOver){
+    if (this.gameOver) {
       return;
     }
+    if (!this.viewMode) {
 
+      this.tempSquares = this.flipBoard(this.squares);
+    }
 
     if (square.potentialMoveMark) {
-      
-      if(!this.viewMode){
-        this.selectedSquare.row = 7-this.selectedSquare.row;
-        square.row = 7-square.row;
-      }
-      
+
       let moveString = this.selectedSquare.toChessCoord() + square.toChessCoord();
-      if(this.promotion&&(this.selectedPiece.typeOfPiece==PieceType.Pawn)){
-        moveString +=this.promotePiece;
+      if (this.promotion && (this.selectedPiece.typeOfPiece == PieceType.Pawn)) {
+        moveString += this.promotePiece;
         this.promotion = false;
       }
       let newMove: MoveRequest = {
@@ -315,7 +330,7 @@ export class BoardComponent implements OnInit {
         newMove: moveString,
         currentState: this.FEN
       }
-      console.log("moveString: "+moveString);
+      console.log("moveString: " + moveString);
       this.makeMove(newMove);
     }
 
@@ -366,40 +381,50 @@ export class BoardComponent implements OnInit {
           break;
         }
       }
-
+      console.log("this.tempSquares: ");
+      console.log(this.tempSquares);
     }
     else {
       this.pieceSelected = false;
     }
-
+    if (!this.viewMode) {
+      this.squares = this.flipBoard(this.tempSquares);
+    }
+    console.log(this.squares);
+    console.log(this.tempSquares);
   }
 
   kingInCheck(square: SquareComponent): boolean {
     if (this.diagonalAttack(square)) {
       console.log("diagonally being attacked");
+      return true;
     }
     if (this.orthogonalAttack(square)) {
       console.log("orthogonally being attacked");
+      return true;
     }
     if (this.knightAttack(square)) {
       console.log("being attacked by knight");
+      return true;
     }
     if (this.pawnAttack(square)) {
       console.log("being attacked by pawn");
+      return true;
     }
-    return true;
+    return false;
   }
 
   diagonalAttack(pos: SquareComponent): boolean {
     //top left 
     //rows (+) col (-)
     for (let offSet: number = 1; pos.col - offSet >= 0 && pos.row + offSet <= 7; offSet++) {
-      if (this.squares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece) {
-        if (this.squares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece?.colorOfPiece != this.currentTurn) {
-          if (this.squares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Bishop
-            || this.squares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Queen) {
-            return true;
-          }
+      if (this.tempSquares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece) {
+        if (this.tempSquares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece?.colorOfPiece != this.currentTurn
+          && (this.tempSquares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Bishop
+            || this.tempSquares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Queen)) {
+          console.log("top left");
+          return true;
+
         }
         else {
           break;
@@ -409,12 +434,13 @@ export class BoardComponent implements OnInit {
     //top right
     //rows (+) col (+)
     for (let offSet: number = 1; pos.col + offSet <= 7 && pos.row + offSet <= 7; offSet++) {
-      if (this.squares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece) {
-        if (this.squares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece?.colorOfPiece != this.currentTurn) {
-          if (this.squares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Bishop
-            || this.squares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Queen) {
-            return true;
-          }
+      if (this.tempSquares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece) {
+        if (this.tempSquares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece?.colorOfPiece != this.currentTurn
+          && (this.tempSquares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Bishop
+            || this.tempSquares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Queen)) {
+          console.log("top right");
+          return true;
+
         }
         else {
           break;
@@ -425,13 +451,12 @@ export class BoardComponent implements OnInit {
     //bottom left
     //rows (-) col (-)
     for (let offSet: number = 1; pos.col - offSet >= 0 && pos.row - offSet >= 0; offSet++) {
-      if (this.squares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece){
-        if(this.squares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece?.colorOfPiece != this.currentTurn) {
-          if (this.squares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Bishop
-              || this.squares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Queen) {
-            return true;
-          }
-          
+      if (this.tempSquares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece) {
+        if (this.tempSquares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece?.colorOfPiece != this.currentTurn
+          && (this.tempSquares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Bishop
+            || this.tempSquares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Queen)) {
+          console.log("bottom left");
+          return true;
         }
         else {
           break;
@@ -442,12 +467,13 @@ export class BoardComponent implements OnInit {
     //bottom right
     //row(-) col (+)
     for (let offSet: number = 1; pos.col + offSet <= 7 && pos.row - offSet >= 0; offSet++) {
-      if (this.squares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece){
-        if(this.squares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece?.colorOfPiece != this.currentTurn) {
-          if (this.squares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Bishop
-              || this.squares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Queen) {
-            return true;
-          }
+      if (this.tempSquares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece) {
+        if (this.tempSquares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece?.colorOfPiece != this.currentTurn
+          && (this.tempSquares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Bishop
+            || this.tempSquares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Queen)) {
+          console.log("bottom right");
+          return true;
+
         }
         else {
           break;
@@ -460,12 +486,12 @@ export class BoardComponent implements OnInit {
     //up 
     //rows (+)
     for (let offSet: number = 1; pos.row + offSet <= 7; offSet++) {
-      if (this.squares[7 - (pos.row + offSet)][pos.col].occupyingPiece){
-        if(this.squares[7 - (pos.row + offSet)][pos.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
-          if (this.squares[7 - (pos.row + offSet)][pos.col].occupyingPiece?.typeOfPiece == PieceType.Rook
-              || this.squares[7 - (pos.row + offSet)][pos.col].occupyingPiece?.typeOfPiece == PieceType.Queen) {
-            return true;
-          }
+      if (this.tempSquares[7 - (pos.row + offSet)][pos.col].occupyingPiece) {
+        if (this.tempSquares[7 - (pos.row + offSet)][pos.col].occupyingPiece?.colorOfPiece != this.currentTurn
+          && (this.tempSquares[7 - (pos.row + offSet)][pos.col].occupyingPiece?.typeOfPiece == PieceType.Rook
+            || this.tempSquares[7 - (pos.row + offSet)][pos.col].occupyingPiece?.typeOfPiece == PieceType.Queen)) {
+          return true;
+
         }
         else {
           break;
@@ -476,12 +502,12 @@ export class BoardComponent implements OnInit {
     //down
     //rows (-)
     for (let offSet: number = 1; pos.row - offSet >= 0; offSet++) {
-      if (this.squares[7 - (pos.row - offSet)][pos.col].occupyingPiece){
-        if(this.squares[7 - (pos.row - offSet)][pos.col].occupyingPiece?.colorOfPiece != this.currentTurn){
-          if (this.squares[7 - (pos.row - offSet)][pos.col].occupyingPiece?.typeOfPiece == PieceType.Rook
-              || this.squares[7 - (pos.row - offSet)][pos.col].occupyingPiece?.typeOfPiece == PieceType.Queen) {
-            return true;
-          }
+      if (this.tempSquares[7 - (pos.row - offSet)][pos.col].occupyingPiece) {
+        if (this.tempSquares[7 - (pos.row - offSet)][pos.col].occupyingPiece?.colorOfPiece != this.currentTurn
+          && (this.tempSquares[7 - (pos.row - offSet)][pos.col].occupyingPiece?.typeOfPiece == PieceType.Rook
+            || this.tempSquares[7 - (pos.row - offSet)][pos.col].occupyingPiece?.typeOfPiece == PieceType.Queen)) {
+          return true;
+
         }
         else {
           break;
@@ -491,13 +517,13 @@ export class BoardComponent implements OnInit {
 
     //left
     //col (-)
-    for (let offSet: number = 1; pos.col - offSet >= 0 && pos.row <= 7; offSet++) {
-      if (this.squares[7 - pos.row][pos.col - offSet].occupyingPiece){
-        if(this.squares[7 - pos.row][pos.col - offSet].occupyingPiece?.colorOfPiece != this.currentTurn) {
-          if (this.squares[7 - pos.row][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Rook
-            || this.squares[7 - pos.row][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Queen) {
-            return true;
-          }
+    for (let offSet: number = 1; pos.col - offSet >= 0; offSet++) {
+      if (this.tempSquares[7 - pos.row][pos.col - offSet].occupyingPiece) {
+        if (this.tempSquares[7 - pos.row][pos.col - offSet].occupyingPiece?.colorOfPiece != this.currentTurn
+          && (this.tempSquares[7 - pos.row][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Rook
+            || this.tempSquares[7 - pos.row][pos.col - offSet].occupyingPiece?.typeOfPiece == PieceType.Queen)) {
+          return true;
+
         }
         else {
           break;
@@ -507,13 +533,13 @@ export class BoardComponent implements OnInit {
 
     //right
     //col(+)
-    for (let offSet: number = 1; pos.col + offSet <= 7 && pos.row <= 7; offSet++) {
-      if (this.squares[7 - pos.row][pos.col + offSet].occupyingPiece){
-        if(this.squares[7 - pos.row][pos.col + offSet].occupyingPiece?.colorOfPiece != this.currentTurn) {
-          if (this.squares[7 - pos.row][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Rook
-            || this.squares[7 - pos.row][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Queen) {
-            return true;
-          }
+    for (let offSet: number = 1; pos.col + offSet <= 7; offSet++) {
+      if (this.tempSquares[7 - pos.row][pos.col + offSet].occupyingPiece) {
+        if (this.tempSquares[7 - pos.row][pos.col + offSet].occupyingPiece?.colorOfPiece != this.currentTurn
+          && (this.tempSquares[7 - pos.row][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Rook
+            || this.tempSquares[7 - pos.row][pos.col + offSet].occupyingPiece?.typeOfPiece == PieceType.Queen)) {
+          return true;
+
         }
         else {
           break;
@@ -531,8 +557,8 @@ export class BoardComponent implements OnInit {
     move.col = pos.col - 1 as Coord;
     //move1 : row + 2, col - 1
     if (move.row <= 7 && move.row >= 0 && move.col <= 7 && move.col >= 0) {
-      if (this.squares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
-        if (this.squares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
+      if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
+        if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
           return true;
         }
       }
@@ -542,8 +568,8 @@ export class BoardComponent implements OnInit {
     move.col = pos.col + 1 as Coord;
     //move2 : row + 2, col + 1
     if (move.row <= 7 && move.row >= 0 && move.col <= 7 && move.col >= 0) {
-      if (this.squares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
-        if (this.squares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
+      if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
+        if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
           return true;
         }
       }
@@ -553,9 +579,9 @@ export class BoardComponent implements OnInit {
     move.col = pos.col - 1 as Coord;
     //move3 : row - 2, col - 1
     if (move.row <= 7 && move.row >= 0 && move.col <= 7 && move.col >= 0) {
-      if (this.squares[7 - (move.row)][move.col].occupyingPiece
-        && this.squares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
-        if (this.squares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
+      if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece
+        && this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
+        if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
           return true;
         }
       }
@@ -565,8 +591,8 @@ export class BoardComponent implements OnInit {
     move.col = pos.col + 1 as Coord;
     //move4 : row - 2, col + 1
     if (move.row <= 7 && move.row >= 0 && move.col <= 7 && move.col >= 0) {
-      if (this.squares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
-        if (this.squares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
+      if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
+        if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
           return true;
         }
       }
@@ -576,8 +602,8 @@ export class BoardComponent implements OnInit {
     move.col = pos.col - 2 as Coord;
     //move5 : row - 1, col - 2
     if (move.row <= 7 && move.row >= 0 && move.col <= 7 && move.col >= 0) {
-      if (this.squares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
-        if (this.squares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
+      if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
+        if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
           return true;
         }
       }
@@ -587,8 +613,8 @@ export class BoardComponent implements OnInit {
     move.col = pos.col - 2 as Coord;
     //move6 : row + 1, col - 2
     if (move.row <= 7 && move.row >= 0 && move.col <= 7 && move.col >= 0) {
-      if (this.squares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
-        if (this.squares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
+      if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
+        if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
           return true;
         }
       }
@@ -598,8 +624,8 @@ export class BoardComponent implements OnInit {
     move.col = pos.col + 2 as Coord;
     //move7 : row - 1, col + 2
     if (move.row <= 7 && move.row >= 0 && move.col <= 7 && move.col >= 0) {
-      if (this.squares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
-        if (this.squares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
+      if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
+        if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
           return true;
         }
       }
@@ -609,8 +635,8 @@ export class BoardComponent implements OnInit {
     move.col = pos.col + 2 as Coord;
     //move8 : row + 1, col + 2
     if (move.row <= 7 && move.row >= 0 && move.col <= 7 && move.col >= 0) {
-      if (this.squares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
-        if (this.squares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
+      if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.colorOfPiece != this.currentTurn) {
+        if (this.tempSquares[7 - (move.row)][move.col].occupyingPiece?.typeOfPiece == PieceType.Knight) {
           return true;
         }
       }
@@ -619,40 +645,45 @@ export class BoardComponent implements OnInit {
   }
   pawnAttack(pos: SquareComponent): boolean {
     if (this.currentTurn == PieceColor.White) {
-      let row:number = (this.viewMode)? (7 - (pos.row + 1)):(pos.row - 1);
+      if (pos.row <= 6) {
+        let row: number = (7 - (pos.row + 1));
 
-
-      if (pos.col<=6
-        &&this.squares[row][pos.col + 1].occupyingPiece
-        && this.squares[row][pos.col + 1].occupyingPiece?.colorOfPiece == PieceColor.Black) {
-        if (this.squares[row][pos.col].occupyingPiece?.typeOfPiece == PieceType.Pawn) {
-          return true;
+        if (pos.col <= 6
+          && this.tempSquares[row][pos.col + 1].occupyingPiece
+          && this.tempSquares[row][pos.col + 1].occupyingPiece?.colorOfPiece == PieceColor.Black) {
+          if (this.tempSquares[row][pos.col + 1].occupyingPiece?.typeOfPiece == PieceType.Pawn) {
+            return true;
+          }
+        }
+        if (pos.col >= 1
+          && this.tempSquares[row][pos.col - 1].occupyingPiece
+          && this.tempSquares[row][pos.col - 1].occupyingPiece?.colorOfPiece == PieceColor.Black) {
+          if (this.tempSquares[row][pos.col - 1].occupyingPiece?.typeOfPiece == PieceType.Pawn) {
+            return true;
+          }
         }
       }
-      if (pos.col>=1
-        &&this.squares[row][pos.col - 1].occupyingPiece
-        && this.squares[row][pos.col - 1].occupyingPiece?.colorOfPiece == PieceColor.Black) {
-        if (this.squares[row][pos.col - 1].occupyingPiece?.typeOfPiece == PieceType.Pawn) {
-          return true;
-        }
-      }
+
     }
     else {
-      let row:number = (this.viewMode)? (7 - (pos.row - 1)):(pos.row + 1);
-      if (pos.col<=6
-        &&this.squares[row][pos.col + 1].occupyingPiece
-        && this.squares[row][pos.col + 1].occupyingPiece?.colorOfPiece == PieceColor.White) {
-        if (this.squares[row][pos.col].occupyingPiece?.typeOfPiece == PieceType.Pawn) {
-          return true;
+      if (pos.row >= 1) {
+        let row: number = (7 - (pos.row - 1));
+        if (pos.col <= 6
+          && this.tempSquares[row][pos.col + 1].occupyingPiece
+          && this.tempSquares[row][pos.col + 1].occupyingPiece?.colorOfPiece == PieceColor.White) {
+          if (this.tempSquares[row][pos.col + 1].occupyingPiece?.typeOfPiece == PieceType.Pawn) {
+            return true;
+          }
+        }
+        if (pos.col >= 1
+          && this.tempSquares[row][pos.col - 1].occupyingPiece
+          && this.tempSquares[row][pos.col - 1].occupyingPiece?.colorOfPiece == PieceColor.White) {
+          if (this.tempSquares[row][pos.col - 1].occupyingPiece?.typeOfPiece == PieceType.Pawn) {
+            return true;
+          }
         }
       }
-      if (pos.col>=1
-        &&this.squares[row][pos.col - 1].occupyingPiece
-        && this.squares[row][pos.col - 1].occupyingPiece?.colorOfPiece == PieceColor.White) {
-        if (this.squares[row][pos.col - 1].occupyingPiece?.typeOfPiece == PieceType.Pawn) {
-          return true;
-        }
-      }
+
     }
     return false;
   }
@@ -670,93 +701,82 @@ export class BoardComponent implements OnInit {
       let toRow: Coord | number = 7 - move.to.row;
       let toCol: Coord | number = move.to.col;
       this.showPotentialMoves = true;
-      if (this.squares[toRow][toCol].occupyingPiece
-        && this.squares[toRow][toCol].occupyingPiece?.colorOfPiece == this.selectedPieceColor
+      if (this.tempSquares[toRow][toCol].occupyingPiece
+        && this.tempSquares[toRow][toCol].occupyingPiece?.colorOfPiece == this.selectedPieceColor
         || ((toRow > upperLimit) || (toRow < lowerLimit) || (toCol < leftLimit) || (toCol > rightLimit))) {
 
       }
       else {
-        this.squares[toRow][toCol].potentialMoveMark = true;
+        this.tempSquares[toRow][toCol].potentialMoveMark = true;
       }
     }
     // Castling check.
     if (this.kingInCheck(square)) {
+      console.log("king in check");
       return;
     }
     if (this.currentTurn == PieceColor.White) {
       if (this.wkCastle) {
         // check if these squares are un-occupied and not being attacked.
-        if (!this.squares[row][col + 1].occupyingPiece
-          && !this.squares[row][col + 2].occupyingPiece) {
-          if (!this.kingInCheck(this.squares[row][col + 1])
-            && !this.kingInCheck(this.squares[row][col + 2])) {
-            this.squares[row][col + 2].potentialMoveMark = true;
+        if (!this.tempSquares[row][col + 1].occupyingPiece
+          && !this.tempSquares[row][col + 2].occupyingPiece) {
+          if (!this.kingInCheck(this.tempSquares[row][col + 1])
+            && !this.kingInCheck(this.tempSquares[row][col + 2])) {
+            this.tempSquares[row][col + 2].potentialMoveMark = true;
           }
         }
       }
       if (this.wqCastle) {
         // check if these squares are un-occupied and not being attacked.
-        if (!this.squares[row][col - 1].occupyingPiece
-          && !this.squares[row][col - 2].occupyingPiece
-          && !this.squares[row][col - 3].occupyingPiece) {
-          if (!this.kingInCheck(this.squares[row][col - 1])
-            && !this.kingInCheck(this.squares[row][col - 2])
-            && !this.kingInCheck(this.squares[row][col - 3])) {
-            this.squares[row][col - 2].potentialMoveMark = true;
+        if (!this.tempSquares[row][col - 1].occupyingPiece
+          && !this.tempSquares[row][col - 2].occupyingPiece
+          && !this.tempSquares[row][col - 3].occupyingPiece) {
+          if (!this.kingInCheck(this.tempSquares[row][col - 1])
+            && !this.kingInCheck(this.tempSquares[row][col - 2])
+            && !this.kingInCheck(this.tempSquares[row][col - 3])) {
+            this.tempSquares[row][col - 2].potentialMoveMark = true;
           }
         }
       }
     }
     else {
       if (this.bkCastle) {
-        if (!this.squares[row][col + 1].occupyingPiece
-          && !this.squares[row][col + 2].occupyingPiece) {
-          if (!this.kingInCheck(this.squares[row][col + 1])
-            && !this.kingInCheck(this.squares[row][col + 2])) {
-            this.squares[row][col + 2].potentialMoveMark = true;
+        if (!this.tempSquares[row][col + 1].occupyingPiece
+          && !this.tempSquares[row][col + 2].occupyingPiece) {
+          if (!this.kingInCheck(this.tempSquares[row][col + 1])
+            && !this.kingInCheck(this.tempSquares[row][col + 2])) {
+            this.tempSquares[row][col + 2].potentialMoveMark = true;
           }
         }
       }
       if (this.bqCastle) {
-        if (!this.squares[row][col - 1].occupyingPiece
-          && !this.squares[row][col - 2].occupyingPiece
-          && !this.squares[row][col - 3].occupyingPiece) {
-          if (!this.kingInCheck(this.squares[row][col - 1])
-            && !this.kingInCheck(this.squares[row][col - 2])
-            && !this.kingInCheck(this.squares[row][col - 3])) {
-            this.squares[row][col - 2].potentialMoveMark = true;
+        if (!this.tempSquares[row][col - 1].occupyingPiece
+          && !this.tempSquares[row][col - 2].occupyingPiece
+          && !this.tempSquares[row][col - 3].occupyingPiece) {
+          if (!this.kingInCheck(this.tempSquares[row][col - 1])
+            && !this.kingInCheck(this.tempSquares[row][col - 2])
+            && !this.kingInCheck(this.tempSquares[row][col - 3])) {
+            this.tempSquares[row][col - 2].potentialMoveMark = true;
           }
         }
       }
     }
   }
   pawnMoves(square: SquareComponent): void {
-    
-    let potentialMoves: Move[] =this.selectedPiece.potentialMoves(square);
+
+    let potentialMoves: Move[] = this.selectedPiece.potentialMoves(square);
     let upperLimit: number = 8;
     let lowerLimit: number = -1;
     let leftLimit: number = -1;
     let rightLimit: number = 8;
-    
-    if(this.currentTurn==PieceColor.White){
-      if(this.viewMode){
-        potentialMoves=whitePawnPotentialMoves(square);
-      }
-      else{
-        
-        potentialMoves = blackPawnPotentialMoves(square);
-      }
+
+    if (this.currentTurn == PieceColor.White) {
+      potentialMoves = whitePawnPotentialMoves(square);
     }
-    else{
-      if(this.viewMode){
-        potentialMoves=blackPawnPotentialMoves(square);
-      }
-      else{
-        
-        potentialMoves = whitePawnPotentialMoves(square);
-      }
+    else {
+      potentialMoves = blackPawnPotentialMoves(square);
     }
-    
+
     for (let move of potentialMoves) {
       console.log("potential move:");
       console.log("move");
@@ -767,16 +787,16 @@ export class BoardComponent implements OnInit {
       let row: number = (7 - square.row);
 
       if (move.mustCapture) {
-        this.enPassantCheck(move, toRow as Coord, toCol as Coord);
+        this.enPassantCheck(toRow as Coord, toCol as Coord);
         console.log("move must capture");
         console.log(move);
-        if (this.squares[toRow][toCol].occupyingPiece && this.squares[toRow][toCol].occupyingPiece?.colorOfPiece != this.currentTurn) {
-          this.squares[toRow][toCol].potentialMoveMark = true;
+        if (this.tempSquares[toRow][toCol].occupyingPiece && this.tempSquares[toRow][toCol].occupyingPiece?.colorOfPiece != this.currentTurn) {
+          this.tempSquares[toRow][toCol].potentialMoveMark = true;
           console.log("affected square:");
-          console.log(this.squares[toRow][toCol]);
+          console.log(this.tempSquares[toRow][toCol]);
         }
       }
-      else if (this.squares[toRow][toCol].occupyingPiece
+      else if (this.tempSquares[toRow][toCol].occupyingPiece
         || ((toRow > upperLimit) || (toRow < lowerLimit) || (toCol < leftLimit) || (toCol > rightLimit))) {
         if (row > toRow && toRow > lowerLimit) {
           lowerLimit = toRow;
@@ -791,9 +811,9 @@ export class BoardComponent implements OnInit {
 
       }
       else {
-        this.squares[toRow][toCol].potentialMoveMark = true;
+        this.tempSquares[toRow][toCol].potentialMoveMark = true;
         console.log("affected square:");
-        console.log(this.squares[toRow][toCol]);
+        console.log(this.tempSquares[toRow][toCol]);
       }
     }
   }
@@ -801,9 +821,9 @@ export class BoardComponent implements OnInit {
     //top left 
     //rows (+) col (-)
     for (let offSet: number = 1; pos.col - offSet >= 0 && pos.row + offSet <= 7; offSet++) {
-      if (this.squares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece) {
-        if (this.squares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
-          this.squares[7 - (pos.row + offSet)][pos.col - offSet].potentialMoveMark = true;
+      if (this.tempSquares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece) {
+        if (this.tempSquares[7 - (pos.row + offSet)][pos.col - offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
+          this.tempSquares[7 - (pos.row + offSet)][pos.col - offSet].potentialMoveMark = true;
           break;
         }
         else {
@@ -811,15 +831,15 @@ export class BoardComponent implements OnInit {
         }
       }
       else {
-        this.squares[7 - (pos.row + offSet)][pos.col - offSet].potentialMoveMark = true;
+        this.tempSquares[7 - (pos.row + offSet)][pos.col - offSet].potentialMoveMark = true;
       }
     }
     //top right
     //rows (+) col (+)
     for (let offSet: number = 1; pos.col + offSet <= 7 && pos.row + offSet <= 7; offSet++) {
-      if (this.squares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece) {
-        if (this.squares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
-          this.squares[7 - (pos.row + offSet)][pos.col + offSet].potentialMoveMark = true;
+      if (this.tempSquares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece) {
+        if (this.tempSquares[7 - (pos.row + offSet)][pos.col + offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
+          this.tempSquares[7 - (pos.row + offSet)][pos.col + offSet].potentialMoveMark = true;
           break;
         }
         else {
@@ -827,16 +847,16 @@ export class BoardComponent implements OnInit {
         }
       }
       else {
-        this.squares[7 - (pos.row + offSet)][pos.col + offSet].potentialMoveMark = true;
+        this.tempSquares[7 - (pos.row + offSet)][pos.col + offSet].potentialMoveMark = true;
       }
     }
 
     //bottom left
     //rows (-) col (-)
     for (let offSet: number = 1; pos.col - offSet >= 0 && pos.row - offSet >= 0; offSet++) {
-      if (this.squares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece) {
-        if (this.squares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
-          this.squares[7 - (pos.row - offSet)][pos.col - offSet].potentialMoveMark = true;
+      if (this.tempSquares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece) {
+        if (this.tempSquares[7 - (pos.row - offSet)][pos.col - offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
+          this.tempSquares[7 - (pos.row - offSet)][pos.col - offSet].potentialMoveMark = true;
           break;
         }
         else {
@@ -844,16 +864,16 @@ export class BoardComponent implements OnInit {
         }
       }
       else {
-        this.squares[7 - (pos.row - offSet)][pos.col - offSet].potentialMoveMark = true;
+        this.tempSquares[7 - (pos.row - offSet)][pos.col - offSet].potentialMoveMark = true;
       }
     }
 
     //bottom right
     //row(-) col (+)
     for (let offSet: number = 1; pos.col + offSet <= 7 && pos.row - offSet >= 0; offSet++) {
-      if (this.squares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece) {
-        if (this.squares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
-          this.squares[7 - (pos.row - offSet)][pos.col + offSet].potentialMoveMark = true;
+      if (this.tempSquares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece) {
+        if (this.tempSquares[7 - (pos.row - offSet)][pos.col + offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
+          this.tempSquares[7 - (pos.row - offSet)][pos.col + offSet].potentialMoveMark = true;
           break;
         }
         else {
@@ -861,7 +881,7 @@ export class BoardComponent implements OnInit {
         }
       }
       else {
-        this.squares[7 - (pos.row - offSet)][pos.col + offSet].potentialMoveMark = true;
+        this.tempSquares[7 - (pos.row - offSet)][pos.col + offSet].potentialMoveMark = true;
       }
     }
   }
@@ -876,12 +896,12 @@ export class BoardComponent implements OnInit {
       let toRow: Coord | number = 7 - move.to.row;
       let toCol: Coord | number = move.to.col;
       this.showPotentialMoves = true;
-      if (this.squares[toRow][toCol].occupyingPiece
-        && this.squares[toRow][toCol].occupyingPiece?.colorOfPiece == this.selectedPieceColor
+      if (this.tempSquares[toRow][toCol].occupyingPiece
+        && this.tempSquares[toRow][toCol].occupyingPiece?.colorOfPiece == this.selectedPieceColor
         || ((toRow > upperLimit) || (toRow < lowerLimit) || (toCol < leftLimit) || (toCol > rightLimit))) {
       }
       else {
-        this.squares[toRow][toCol].potentialMoveMark = true;
+        this.tempSquares[toRow][toCol].potentialMoveMark = true;
       }
     }
   }
@@ -889,9 +909,9 @@ export class BoardComponent implements OnInit {
     //up
     //rows (+)
     for (let offSet: number = 1; square.row + offSet <= 7; offSet++) {
-      if (this.squares[7 - (square.row + offSet)][square.col].occupyingPiece) {
-        if (this.squares[7 - (square.row + offSet)][square.col].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
-          this.squares[7 - (square.row + offSet)][square.col].potentialMoveMark = true;
+      if (this.tempSquares[7 - (square.row + offSet)][square.col].occupyingPiece) {
+        if (this.tempSquares[7 - (square.row + offSet)][square.col].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
+          this.tempSquares[7 - (square.row + offSet)][square.col].potentialMoveMark = true;
           break;
         }
         else {
@@ -899,15 +919,15 @@ export class BoardComponent implements OnInit {
         }
       }
       else {
-        this.squares[7 - (square.row + offSet)][square.col].potentialMoveMark = true;
+        this.tempSquares[7 - (square.row + offSet)][square.col].potentialMoveMark = true;
       }
     }
     //down
     //rows (-)
     for (let offSet: number = 1; square.row - offSet >= 0; offSet++) {
-      if (this.squares[7 - (square.row - offSet)][square.col].occupyingPiece) {
-        if (this.squares[7 - (square.row - offSet)][square.col].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
-          this.squares[7 - (square.row - offSet)][square.col].potentialMoveMark = true;
+      if (this.tempSquares[7 - (square.row - offSet)][square.col].occupyingPiece) {
+        if (this.tempSquares[7 - (square.row - offSet)][square.col].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
+          this.tempSquares[7 - (square.row - offSet)][square.col].potentialMoveMark = true;
           break;
         }
         else {
@@ -915,16 +935,16 @@ export class BoardComponent implements OnInit {
         }
       }
       else {
-        this.squares[7 - (square.row - offSet)][square.col].potentialMoveMark = true;
+        this.tempSquares[7 - (square.row - offSet)][square.col].potentialMoveMark = true;
       }
     }
 
     //left
     //col (-)
     for (let offSet: number = 1; square.col - offSet >= 0; offSet++) {
-      if (this.squares[7 - square.row][square.col-offSet].occupyingPiece) {
-        if (this.squares[7 - square.row][square.col-offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
-          this.squares[7 - square.row][square.col-offSet].potentialMoveMark = true;
+      if (this.tempSquares[7 - square.row][square.col - offSet].occupyingPiece) {
+        if (this.tempSquares[7 - square.row][square.col - offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
+          this.tempSquares[7 - square.row][square.col - offSet].potentialMoveMark = true;
           break;
         }
         else {
@@ -932,16 +952,16 @@ export class BoardComponent implements OnInit {
         }
       }
       else {
-        this.squares[7 - square.row][square.col-offSet].potentialMoveMark = true;
+        this.tempSquares[7 - square.row][square.col - offSet].potentialMoveMark = true;
       }
     }
 
     //right
     //col (+)
     for (let offSet: number = 1; square.col + offSet <= 7; offSet++) {
-      if (this.squares[7 - square.row][square.col + offSet].occupyingPiece) {
-        if (this.squares[7 - square.row][square.col + offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
-          this.squares[7 - square.row][square.col + offSet].potentialMoveMark = true;
+      if (this.tempSquares[7 - square.row][square.col + offSet].occupyingPiece) {
+        if (this.tempSquares[7 - square.row][square.col + offSet].occupyingPiece?.colorOfPiece != this.selectedPieceColor) {
+          this.tempSquares[7 - square.row][square.col + offSet].potentialMoveMark = true;
           break;
         }
         else {
@@ -949,17 +969,14 @@ export class BoardComponent implements OnInit {
         }
       }
       else {
-        this.squares[7 - square.row][square.col + offSet].potentialMoveMark = true;
+        this.tempSquares[7 - square.row][square.col + offSet].potentialMoveMark = true;
       }
     }
   }
 
-
-
-  enPassantCheck(move: Move, toRow: Coord, toCol: Coord): void {
+  enPassantCheck(toRow: Coord, toCol: Coord): void {
     if (this.enPassant && (this.selectedPiece.typeOfPiece == PieceType.Pawn)) {
-      console.log("move: ");
-      console.log(move);
+      
       console.log("this.enPassant?.row==toRow && this.enPassant?.col == toCol");
       console.log(this.enPassant?.row == toRow && this.enPassant?.col == toCol);
       console.log("this.enpassant.row: " + this.enPassant.row);
@@ -967,13 +984,13 @@ export class BoardComponent implements OnInit {
       console.log("toRow: " + toRow);
       console.log("toCol: " + toCol);
 
-      let row = (this.viewMode)? (7 - toRow):toRow;
+      let row = (7 - toRow);
       if (this.enPassant?.row == row && this.enPassant?.col == toCol) {
-        this.squares[toRow][toCol].potentialMoveMark = true;
+        this.tempSquares[toRow][toCol].potentialMoveMark = true;
       }
 
       console.log("affected square:");
-      console.log(this.squares[toRow][toCol]);
+      console.log(this.tempSquares[toRow][toCol]);
     }
   }
   removeHighlight(): void {
@@ -992,7 +1009,7 @@ export class BoardComponent implements OnInit {
 
   retrieveGameById(): void {
     this.gameId = +this.route.snapshot.paramMap.get('id')!;
-    this.viewMode = this.route.snapshot.paramMap.get('color') == 'white';
+    this.viewMode = this.route.snapshot.paramMap.get('color') != 'black';
     console.log("submit");
     console.log(this.gameId);
     this.gameService.getGameById(this.gameId)
@@ -1005,8 +1022,6 @@ export class BoardComponent implements OnInit {
         this.setupBoard();
       });
   }
-
-
 
   makeMove(toMake: MoveRequest): void {
     console.log(toMake)
