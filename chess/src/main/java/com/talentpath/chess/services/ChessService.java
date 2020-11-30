@@ -81,7 +81,7 @@ public class ChessService {
 
     public GameView makeMove(MoveRequest moveRequest) throws EntityNotFoundException, InvalidInputException, NullInputException, MoveGeneratorException, ChessDaoException {
         int currentGameId = moveRequest.getGameId();
-        GameData currentGameData = gameDataRepository.getOne(currentGameId);
+        GameData currentGameData = gameDataRepository.findByGameId(currentGameId);
         GameView gameView = new GameView(currentGameData);
 
         Board board = replayMoves(currentGameId);
@@ -137,7 +137,7 @@ public class ChessService {
 
     public GameView undoMove(UndoRequest moveRequest) throws InvalidInputException, NullInputException, ChessDaoException {
         int currentGameId = moveRequest.getGameId();
-        GameData currentGameData = gameDataRepository.getOne(currentGameId);
+        GameData currentGameData = gameDataRepository.findByGameId(currentGameId);
         GameView gameView = new GameView(currentGameData);
 
         Board board = replayMoves(currentGameId);

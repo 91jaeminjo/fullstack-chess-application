@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, NgZone, OnInit } from '@angular/core';
 
 import { BlackBishop } from "../chess-model/chess-pieces/BlackBishop";
 import { BlackKing } from "../chess-model/chess-pieces/BlackKing";
@@ -22,6 +22,14 @@ import { ActivatedRoute } from '@angular/router';
 import { blackPawnPotentialMoves, whitePawnPotentialMoves } from '../chess-model/chess-pieces/piece-functions/PotentialMoves';
 
 
+
+import { map, catchError, tap, takeUntil } from 'rxjs/operators';
+
+import { Observable, Subject } from 'rxjs';
+import * as SockJS from 'sockjs-client';
+import { Stomp } from '@stomp/stompjs/esm6/compatibility/stomp';
+
+
 @Component({
   selector: 'app-board',
   templateUrl: './board.component.html',
@@ -32,7 +40,8 @@ export class BoardComponent implements OnInit {
   @Input() FEN!: string; // starting state "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq e3 0 1";
   @Input() gameOver!: boolean;
   message!: string;
-  viewMode: boolean = true; // true = white, false = black;
+  oneSideViewWithWS!: boolean;
+  viewWhiteOnly: boolean = true; // true = white, false = black;
   squares!: SquareComponent[][];
   tempSquares!: SquareComponent[][]
   promotion: boolean = false;
@@ -57,15 +66,94 @@ export class BoardComponent implements OnInit {
 
   showPotentialMoves!: boolean;
 
-  constructor(private route: ActivatedRoute, private gameService: GameServiceService) {
+
+  wsFEN!: any;
+  destroyed$ = new Subject();
+  webSocketEndPoint: string = 'http://localhost:8080/ws';
+  topic: string = "/topic/chess-front-end";
+  stompClient: any;
+  socket = new SockJS(this.webSocketEndPoint);
+
+  constructor(public route: ActivatedRoute, public gameService: GameServiceService) {
+
   }
 
+
+  ngOnDestroy() {
+    //this.webSocketAPI.disconnect();
+    this.destroyed$.next();
+  }
+
+  connect() {
+    console.log("Initialize WebSocket Connection");
+    let ws = new SockJS(this.webSocketEndPoint);
+    this.stompClient = Stomp.over(ws);
+    const _this = this;
+    _this.stompClient.connect({}, function (frame: any) {
+      _this.stompClient.subscribe(_this.topic, function (sdkEvent: any) {
+        _this.onMessageReceived(sdkEvent);
+      });
+      //_this.stompClient.reconnect_delay = 2000;
+    }, this.errorCallBack);
+  };
+
+  disconnect() {
+    if (this.stompClient !== null) {
+      this.stompClient.disconnect();
+    }
+    console.log("Disconnected");
+  }
+
+  // on error, schedule a reconnection attempt
+  errorCallBack(error: any) {
+    console.log("errorCallBack -> " + error)
+    setTimeout(() => {
+      this.connect();
+    }, 5000);
+  }
+
+  /**
+  * Send message to sever via web socket
+  * @param {*} message 
+  */
+
+
+  
+
+  onMessageReceived(message: any) {
+    console.log("Message Recieved from Server :: ");
+    console.log(JSON.parse(message.body));
+    console.log("message");
+    console.log(message);
+
+    let gameObject = JSON.parse(message.body);
+    console.log("gameObject");
+    console.log(gameObject);
+    console.log(gameObject.gameId);
+    console.log(gameObject.state);
+    this.gameId = gameObject.gameId;
+    this.FEN = gameObject.state.trim();
+    this.gameOver = gameObject.gameOver;
+
+    console.log("inside ng zone run");
+    this.reloadBoard();
+  }
+  
   ngOnInit(): void {
+    //this.webSocketAPI = new WebSocketAPI(new BoardComponent(this.webSocketService, this.route, this.gameService));
+    //this.webSocketAPI.connect();
+
+    this.connect();
+
     this.retrieveGameById();
+    this.oneSideViewWithWS = this.route.snapshot.paramMap.get('color') == 'white'
+      || this.route.snapshot.paramMap.get('color') == 'black';
+
+
   }
 
   flipView(): void {
-    this.viewMode = !this.viewMode;
+    this.viewWhiteOnly = !this.viewWhiteOnly;
     this.initialize();
     this.reloadBoard();
   }
@@ -81,7 +169,7 @@ export class BoardComponent implements OnInit {
           console.log(this.tempSquares[row][i]);
           return;
         }
-        
+
       }
     } else {
       let row = 6;
@@ -276,14 +364,14 @@ export class BoardComponent implements OnInit {
           squareLine.push(newSquare);
         }
       }
-      if (this.viewMode) {
+      if (this.viewWhiteOnly) {
         this.squares.unshift(squareLine);
       } else {
 
         this.squares.push(squareLine);
       }
     }
-    if (this.viewMode) {
+    if (this.viewWhiteOnly) {
       this.tempSquares = this.squares;
     }
     else {
@@ -313,7 +401,7 @@ export class BoardComponent implements OnInit {
     if (this.gameOver) {
       return;
     }
-    if (!this.viewMode) {
+    if (!this.viewWhiteOnly) {
 
       this.tempSquares = this.flipBoard(this.squares);
     }
@@ -331,7 +419,16 @@ export class BoardComponent implements OnInit {
         currentState: this.FEN
       }
       console.log("moveString: " + moveString);
-      this.makeMove(newMove);
+      if (this.oneSideViewWithWS) {
+        console.log("connecting to websocket");
+        //this.webSocketService.sendMessage(newMove);
+
+        this.makeMoveWS(newMove);
+      }
+      else {
+        this.makeMove(newMove);
+      }
+
     }
 
     console.log("currentColor: " + this.currentTurn);
@@ -387,7 +484,7 @@ export class BoardComponent implements OnInit {
     else {
       this.pieceSelected = false;
     }
-    if (!this.viewMode) {
+    if (!this.viewWhiteOnly) {
       this.squares = this.flipBoard(this.tempSquares);
     }
     console.log(this.squares);
@@ -976,7 +1073,7 @@ export class BoardComponent implements OnInit {
 
   enPassantCheck(toRow: Coord, toCol: Coord): void {
     if (this.enPassant && (this.selectedPiece.typeOfPiece == PieceType.Pawn)) {
-      
+
       console.log("this.enPassant?.row==toRow && this.enPassant?.col == toCol");
       console.log(this.enPassant?.row == toRow && this.enPassant?.col == toCol);
       console.log("this.enpassant.row: " + this.enPassant.row);
@@ -1009,7 +1106,7 @@ export class BoardComponent implements OnInit {
 
   retrieveGameById(): void {
     this.gameId = +this.route.snapshot.paramMap.get('id')!;
-    this.viewMode = this.route.snapshot.paramMap.get('color') != 'black';
+    this.viewWhiteOnly = this.route.snapshot.paramMap.get('color') != 'black';
     console.log("submit");
     console.log(this.gameId);
     this.gameService.getGameById(this.gameId)
@@ -1023,6 +1120,13 @@ export class BoardComponent implements OnInit {
       });
   }
 
+  makeMoveWS(toMake: MoveRequest): void {
+    //this.webSocketAPI.makeMove(toMake);
+    this.sendMove(toMake);
+    console.log("wsFEN:");
+    console.log(this.wsFEN);
+  }
+
   makeMove(toMake: MoveRequest): void {
     console.log(toMake)
     this.gameService.makeMove(toMake)
@@ -1034,7 +1138,12 @@ export class BoardComponent implements OnInit {
         this.reloadBoard();
       })
   }
-
+  sendMove(toMake: any) {
+    this.stompClient.send("/app/makeMove", {}, JSON.stringify(toMake));
+  }
+  sendUndo(undoRequest:any){
+    this.stompClient.send("/app/undoMove", {}, JSON.stringify(undoRequest));
+  }
   undoMove(): void {
     console.log("undoing move");
     console.log(this.FEN);
@@ -1042,7 +1151,13 @@ export class BoardComponent implements OnInit {
       gameId: this.gameId,
       currentState: this.FEN
     }
-    this.gameService.undoMove(toUndo)
+    if(this.oneSideViewWithWS){
+      console.log("inside ws undo");
+      console.log(toUndo);
+      this.sendUndo(toUndo);
+    }
+    else{
+      this.gameService.undoMove(toUndo)
       .subscribe(game => {
         console.log(game);
         this.gameId = game.gameId;
@@ -1050,6 +1165,8 @@ export class BoardComponent implements OnInit {
         this.gameOver = game.gameOver;
         this.reloadBoard();
       })
+    }
+    
   }
 
 }

@@ -6,7 +6,7 @@ import javax.persistence.*;
 @Table(name ="ChessMove")
 public class ChessMove {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private GameData gameData;
     @Id
     @Column(unique = true)

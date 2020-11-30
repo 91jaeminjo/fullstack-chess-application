@@ -13,4 +13,6 @@ public interface GameDataRepository extends JpaRepository<GameData, Integer> {
     @Query( value = "SELECT \"game_id\" FROM \"game_data\" ORDER BY \"game_id\" ASC;",
             nativeQuery = true)
     List<Integer> findAllGameIds();
+
+    GameData findByGameId(int currentGameId);
 }
