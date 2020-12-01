@@ -62,7 +62,9 @@ export class SigninComponent implements OnInit {
     this.authService.login(this.loginRequestPayload).subscribe((data) => {
       if (data) {
         this.isError = false;
-        this.router.navigateByUrl("/home");
+        this.router.navigateByUrl("/home").then(() => {
+          window.location.reload();
+        });
       } else {
         this.isError = true;
       }

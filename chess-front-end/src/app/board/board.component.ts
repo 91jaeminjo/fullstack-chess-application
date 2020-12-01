@@ -18,7 +18,7 @@ import { Piece } from "../chess-model/game-definitions/game-interface/Piece";
 import { SquareComponent } from '../square/square.component';
 import { GameServiceService } from '../game-service.service';
 import { MoveRequest } from '../chess-model/game-definitions/game-interface/MoveRequest';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { blackPawnPotentialMoves, whitePawnPotentialMoves } from '../chess-model/chess-pieces/piece-functions/PotentialMoves';
 
 
@@ -74,14 +74,16 @@ export class BoardComponent implements OnInit {
   stompClient: any;
   socket = new SockJS(this.webSocketEndPoint);
 
-  constructor(public route: ActivatedRoute, public gameService: GameServiceService) {
+  constructor(public router: Router, public route: ActivatedRoute,
+    public gameService: GameServiceService) {
 
   }
 
 
   ngOnDestroy() {
     //this.webSocketAPI.disconnect();
-    this.destroyed$.next();
+    //this.destroyed$.next();
+    this.stompClient.disconnect();
   }
 
   connect() {
@@ -118,13 +120,9 @@ export class BoardComponent implements OnInit {
   */
 
 
-  
+
 
   onMessageReceived(message: any) {
-    console.log("Message Recieved from Server :: ");
-    console.log(JSON.parse(message.body));
-    console.log("message");
-    console.log(message);
 
     let gameObject = JSON.parse(message.body);
     console.log("gameObject");
@@ -137,18 +135,16 @@ export class BoardComponent implements OnInit {
 
     this.reloadBoard();
   }
-  
+
   ngOnInit(): void {
     //this.webSocketAPI = new WebSocketAPI(new BoardComponent(this.webSocketService, this.route, this.gameService));
     //this.webSocketAPI.connect();
-
-    this.connect();
 
     this.retrieveGameById();
     this.oneSideViewWithWS = this.route.snapshot.paramMap.get('color') == 'white'
       || this.route.snapshot.paramMap.get('color') == 'black';
 
-
+    this.connect();
   }
 
   flipView(): void {
@@ -1110,12 +1106,19 @@ export class BoardComponent implements OnInit {
     console.log(this.gameId);
     this.gameService.getGameById(this.gameId)
       .subscribe(game => {
-        console.log(game);
-        this.gameId = game.gameId;
-        this.FEN = game.state;
-        this.gameOver = game.gameOver;
-        this.initialize();
-        this.setupBoard();
+        if (!game.gameId) {
+          console.log("game not found");
+          
+          this.router.navigateByUrl("/home");
+        }else{
+          console.log(game);
+          this.gameId = game.gameId;
+          this.FEN = game.state;
+          this.gameOver = game.gameOver;
+          this.initialize();
+          this.setupBoard();
+        }
+        
       });
   }
 
@@ -1140,7 +1143,7 @@ export class BoardComponent implements OnInit {
   sendMove(toMake: any) {
     this.stompClient.send("/app/makeMove", {}, JSON.stringify(toMake));
   }
-  sendUndo(undoRequest:any){
+  sendUndo(undoRequest: any) {
     this.stompClient.send("/app/undoMove", {}, JSON.stringify(undoRequest));
   }
   undoMove(): void {
@@ -1150,22 +1153,22 @@ export class BoardComponent implements OnInit {
       gameId: this.gameId,
       currentState: this.FEN
     }
-    if(this.oneSideViewWithWS){
+    if (this.oneSideViewWithWS) {
       console.log("inside ws undo");
       console.log(toUndo);
       this.sendUndo(toUndo);
     }
-    else{
+    else {
       this.gameService.undoMove(toUndo)
-      .subscribe(game => {
-        console.log(game);
-        this.gameId = game.gameId;
-        this.FEN = game.state?.trim();
-        this.gameOver = game.gameOver;
-        this.reloadBoard();
-      })
+        .subscribe(game => {
+          console.log(game);
+          this.gameId = game.gameId;
+          this.FEN = game.state?.trim();
+          this.gameOver = game.gameOver;
+          this.reloadBoard();
+        })
     }
-    
+
   }
 
 }
