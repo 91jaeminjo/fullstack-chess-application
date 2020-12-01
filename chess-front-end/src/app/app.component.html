@@ -1,8 +1,13 @@
 <nav class="navbar navbar-dark text-center text-light bg-dark">
-    <div class="nav-text nav-title">{{title}}</div>
+  <div class="nav-text nav-title">{{title}}</div>
+  <div class="d-flex justify-content-right">
+    <a *ngIf="!loggedIn" class="nav-text nav-link" routerLink="/signup">Sign up</a>
+    <a *ngIf="!loggedIn" class="nav-text nav-link" routerLink="/signin">Sign in</a>
+    <div *ngIf="loggedIn" class="nav-text nav-link" (click)="logout()">Log out</div>
     <a class="nav-text nav-link" routerLink="/home">Home</a>
+  </div>
 </nav>
-<br/>
-<br/>
-<br/>
+<br />
+<br />
+<br />
 <router-outlet></router-outlet>

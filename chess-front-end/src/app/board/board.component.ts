@@ -135,7 +135,6 @@ export class BoardComponent implements OnInit {
     this.FEN = gameObject.state.trim();
     this.gameOver = gameObject.gameOver;
 
-    console.log("inside ng zone run");
     this.reloadBoard();
   }
   
