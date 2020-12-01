@@ -16,6 +16,8 @@
 
 	<properties>
 		<java.version>11</java.version>
+		<spring.version>5.2.8.RELEASE</spring.version>
+		<spring-security.version>5.2.3.RELEASE</spring-security.version>
 	</properties>
 	<repositories>
 		<repository>
@@ -70,11 +72,6 @@
 			<version>2.4.0</version>
 		</dependency>
 
-
-
-
-
-
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-messaging</artifactId>
@@ -109,9 +106,19 @@
 			<scope>runtime</scope>
 		</dependency>
 
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.boot</groupId>-->
+<!--			<artifactId>spring-boot-starter-security</artifactId>-->
+<!--		</dependency>-->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+			<version>${spring-security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+			<version>${spring-security.version}</version>
 		</dependency>
 
 		<dependency>
