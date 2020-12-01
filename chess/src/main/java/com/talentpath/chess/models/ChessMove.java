@@ -4,12 +4,14 @@ import javax.persistence.*;
 
 @Entity
 @Table(name ="ChessMove")
+@IdClass(ChessMoveId.class)
 public class ChessMove {
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Id
+    @ManyToOne
+    @JoinColumn(name = "game_data_game_id")
     private GameData gameData;
     @Id
-    @Column(unique = true)
     private Integer moveCount;
     private String move;
 
