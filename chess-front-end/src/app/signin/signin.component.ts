@@ -11,7 +11,7 @@ export interface SigninRequestPayload {
 export interface SigninResponse {
   token: string;
   
-  username: string;
+  userName: string;
 }
 
 @Component({

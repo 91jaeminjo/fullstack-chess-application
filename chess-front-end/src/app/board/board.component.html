@@ -1,8 +1,8 @@
 <div class="container board">
   <div class="row">
 
-    <button class="btn btn-primary" (click)="undoMove()">Undo</button>
-    <button class="btn btn-success" (click)="flipView()">Flip View</button>
+    <button class="btn btn-primary m-1" (click)="undoMove()">Undo</button>
+    <button class="btn btn-success m-1" (click)="flipView()">Flip View</button>
 
   </div>
 
@@ -10,10 +10,10 @@
   <br />
 
   <div class="row">
-    <button class="btn btn-secondary" (click)="promoteTo('q')" [disabled]="!promotion">Queen</button>
-    <button class="btn btn-secondary" (click)="promoteTo('r')" [disabled]="!promotion">Rook</button>
-    <button class="btn btn-secondary" (click)="promoteTo('n')" [disabled]="!promotion">Knight</button>
-    <button class="btn btn-secondary" (click)="promoteTo('b')" [disabled]="!promotion">Bishop</button>
+    <button class="btn btn-secondary m-1" (click)="promoteTo('q')" [disabled]="!promotion">Queen</button>
+    <button class="btn btn-secondary m-1" (click)="promoteTo('r')" [disabled]="!promotion">Rook</button>
+    <button class="btn btn-secondary m-1" (click)="promoteTo('n')" [disabled]="!promotion">Knight</button>
+    <button class="btn btn-secondary m-1" (click)="promoteTo('b')" [disabled]="!promotion">Bishop</button>
     <h3>&nbsp;&nbsp;{{message}}</h3>
   </div>
 

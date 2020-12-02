@@ -12,8 +12,16 @@ export class AppComponent {
   constructor(private authService:AuthService){
 
   }
-  loggedIn = this.authService.isLoggedIn();
+  loggedIn:boolean = this.authService.isLoggedIn();
   title = 'My Chess Game';
+  username:any="";
+  ngOnInit():void{
+    if(this.loggedIn){
+      console.log("logged in");
+      this.username = this.authService.getUserName();
+      console.log(this.username);
+    }
+  }
 
   logout():void{
     this.authService.logout();

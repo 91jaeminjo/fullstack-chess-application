@@ -2,7 +2,11 @@
     box-sizing: content-box;
     padding: 0;
     margin-left: auto;
-
+    color: black;
+    background-color: whitesmoke;
+    opacity: 90%;
+    padding-left:20px;
+    padding-bottom:500px;
 }
 .row{
     float:left;
@@ -15,3 +19,5 @@
 .controls{
     max-height: 4vh !important;
 }
+
+

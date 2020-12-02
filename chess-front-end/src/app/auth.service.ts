@@ -39,11 +39,11 @@ export class AuthService {
       .pipe(
         map((data) => {
           console.log(data);
-          this.localStorage.store("username", data.username);
+          this.localStorage.store("username", data.userName);
           this.localStorage.store("token", data.token);
 
           this.loggedIn.emit(true);
-          this.username.emit(data.username);
+          this.username.emit(data.userName);
           return true;
         })
       );
@@ -63,6 +63,7 @@ export class AuthService {
   }
 
   getUserName() {
+    console.log(this.localStorage)
     return this.localStorage.retrieve("username");
   }
 

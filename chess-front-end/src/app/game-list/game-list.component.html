@@ -11,17 +11,17 @@
     <div class="col-3"></div>
     <div class="col-6">
       <div class="row">
-        <button class="btn btn-secondary" (click)="setColor('white')">White</button>
-        <button class="btn btn-secondary" (click)="setColor('black')">Black</button>
+        <button class="btn btn-secondary m-1" (click)="setColor('white')">White</button>
+        <button class="btn btn-secondary m-1" (click)="setColor('black')">Black</button>
       </div>
-      <div *ngIf="!color">
-        <div class="list" *ngFor="let gameId of gameList">
-          <a class="btn btn-success btn-block" routerLink="/game/{{gameId}}">{{gameId}}</a>
+      <div class="list" *ngIf="!color">
+        <div *ngFor="let gameId of gameList">
+          <a class="btn btn-success btn-block m-1" routerLink="/game/{{gameId}}">{{gameId}}</a>
         </div>
       </div>
-      <div *ngIf="color">
-        <div class="list" *ngFor="let gameId of gameList">
-          <a class="btn btn-success btn-block" routerLink="/game/{{color}}/{{gameId}}">{{gameId}}</a>
+      <div class="list" *ngIf="color">
+        <div *ngFor="let gameId of gameList">
+          <a class="btn btn-success btn-block m-1" routerLink="/game/{{color}}/{{gameId}}">{{gameId}}</a>
         </div>
       </div>
     </div>

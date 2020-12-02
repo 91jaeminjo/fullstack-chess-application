@@ -10,18 +10,21 @@ nav{
         font-size:1.7rem;
         padding-left:25px;
         cursor:default;
-        color:rgb(143, 143, 143);
-        
+        color:rgb(196, 195, 195);
+        color: whitesmoke;
+        cursor: pointer;
     }
     .nav-link{
         margin-left:auto;
         cursor:pointer;
-        color: rgb(143, 143, 143);
-        
+        color:rgb(196, 195, 195);
+        color: whitesmoke;
     }
     .nav-text{
         vertical-align: middle;
         font-size:1.2rem;
+        color:rgb(196, 195, 195);
+        color: whitesmoke;
         &:hover{
             color:rgb(243, 243, 243);
         }
