@@ -1,6 +1,6 @@
 package com.talentpath.chess.controllers;
 
-import com.talentpath.chess.exceptions.ChessDaoException;
+import com.github.bhlangonijr.chesslib.move.MoveGeneratorException;
 import com.talentpath.chess.exceptions.InvalidInputException;
 import com.talentpath.chess.exceptions.NullInputException;
 import org.springframework.http.HttpStatus;
@@ -24,11 +24,9 @@ public class ExceptionController {
         return request.toString() +" Internal Exception Message: "+ ex.getMessage();
     }
 
-
-
-    @ExceptionHandler ( value = ChessDaoException.class)
+    @ExceptionHandler ( value = MoveGeneratorException.class)
     @ResponseStatus ( code = HttpStatus.INTERNAL_SERVER_ERROR)
-    public String errorInPostgres(ChessDaoException ex, WebRequest request){
+    public String errorInPostgres(MoveGeneratorException ex, WebRequest request){
         return request.toString() +" Internal Exception Message: "+ ex.getMessage();
 
     }

@@ -10,7 +10,6 @@ import com.talentpath.chess.daos.*;
 import com.talentpath.chess.dtos.GameView;
 import com.talentpath.chess.dtos.MoveRequest;
 import com.talentpath.chess.dtos.UndoRequest;
-import com.talentpath.chess.exceptions.ChessDaoException;
 import com.talentpath.chess.exceptions.InvalidInputException;
 import com.talentpath.chess.exceptions.NullInputException;
 import com.talentpath.chess.models.GameData;
@@ -31,19 +30,16 @@ public class ChessService {
     @Autowired
     ChessMoveRepository chessMoveRepository;
 
-
-
-    public GameView beginChessGame() throws NullInputException, ChessDaoException {
+    public GameView beginChessGame() {
         GameData gameDataToAdd = new GameData();
         gameDataToAdd.setGameOver(false);
         gameDataToAdd = gameDataRepository.saveAndFlush(gameDataToAdd);
         GameView gameView = new GameView(gameDataToAdd);
         gameView.setState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         return gameView;
-
     }
 
-    public Board replayMoves(Integer currentGameId){
+    private Board replayMoves(Integer currentGameId){
 
         List<ChessMove> newAllMoves = chessMoveRepository.findByGameDataGameIdOrderByMoveCountAsc(currentGameId);
 
@@ -65,7 +61,16 @@ public class ChessService {
         return gameDataRepository.findAllGameIds();
     }
 
-    public GameView getGameById(Integer gameId) {
+    public GameView getGameById(Integer gameId) throws NullInputException, InvalidInputException {
+        if(gameId == null){
+            throw new NullInputException("Null gameId received in ChessService.getGameById.");
+        }
+
+        List<Integer> allGameIds = getAllGameIds();
+        if(!allGameIds.contains(gameId)){
+            throw new InvalidInputException("gameId received in ChessService.getGameById is not present in all game ids.");
+        }
+
         GameData currentGameData = gameDataRepository.findById(gameId).orElse(null);
         GameView gameView = new GameView();
         if(currentGameData!=null){
@@ -75,12 +80,18 @@ public class ChessService {
             gameView.setState(stateInRecord);
         }
 
-
         return gameView;
     }
 
-    public GameView makeMove(MoveRequest moveRequest) throws EntityNotFoundException, InvalidInputException, NullInputException, MoveGeneratorException, ChessDaoException {
+    public GameView makeMove(MoveRequest moveRequest) throws InvalidInputException, NullInputException, MoveGeneratorException {
+        if(moveRequest==null){
+            throw new NullInputException("Null move request received in ChessService.makeMove.");
+        }
         int currentGameId = moveRequest.getGameId();
+        List<Integer> allGameIds = getAllGameIds();
+        if(!allGameIds.contains(currentGameId)){
+            throw new InvalidInputException("gameId in moveRequest received in ChessService.makeMove is not present in all game ids.");
+        }
         GameData currentGameData = gameDataRepository.findByGameId(currentGameId);
         GameView gameView = new GameView(currentGameData);
 
@@ -135,8 +146,15 @@ public class ChessService {
         return gameView;
     }
 
-    public GameView undoMove(UndoRequest moveRequest) throws InvalidInputException, NullInputException, ChessDaoException {
-        int currentGameId = moveRequest.getGameId();
+    public GameView undoMove(UndoRequest undoRequest) throws InvalidInputException, NullInputException {
+        if(undoRequest==null){
+            throw new NullInputException("Null undo request received in ChessService.undoMove.");
+        }
+        int currentGameId = undoRequest.getGameId();
+        List<Integer> allGameIds = getAllGameIds();
+        if(!allGameIds.contains(currentGameId)){
+            throw new InvalidInputException("gameId in undoRequest received in ChessService.undoMove is not present in all game ids.");
+        }
         GameData currentGameData = gameDataRepository.findByGameId(currentGameId);
         GameView gameView = new GameView(currentGameData);
 
@@ -146,7 +164,7 @@ public class ChessService {
         if(currentGameData.getGameOver()){
             return gameView;
         }
-        String stateFromInput = moveRequest.getCurrentState().trim();
+        String stateFromInput = undoRequest.getCurrentState().trim();
         if(!stateInRecord.equals(stateFromInput)){
             throw new InvalidInputException("The FEN state of input doesn't match the FEN state of record.\n" +
                     "FEN record: "+stateInRecord+".\n" +
@@ -163,19 +181,5 @@ public class ChessService {
         }
 
         return gameView;
-    }
-
-    public GameView promotePawn(){
-        Board board = new Board();
-        board.loadFromFen("r1bq1bnr/pp1kpPp1/7p/2p5/4N3/2p5/PPQP1PPP/RNB1KB1R w KQ - 1 12");
-        Side side = Side.WHITE;
-
-        //board.
-        //board.doMove(move);
-        System.out.println(board.getFen());
-
-
-        return new GameView();
-
     }
 }

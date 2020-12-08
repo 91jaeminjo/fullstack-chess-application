@@ -4,10 +4,8 @@ import com.github.bhlangonijr.chesslib.move.MoveGeneratorException;
 import com.talentpath.chess.dtos.GameView;
 import com.talentpath.chess.dtos.MoveRequest;
 import com.talentpath.chess.dtos.UndoRequest;
-import com.talentpath.chess.exceptions.ChessDaoException;
 import com.talentpath.chess.exceptions.InvalidInputException;
 import com.talentpath.chess.exceptions.NullInputException;
-import com.talentpath.chess.models.GameData;
 import com.talentpath.chess.services.ChessService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,12 +21,12 @@ public class ChessController {
     ChessService chessService;
 
     @PostMapping("/begin")
-    public GameView beginChessGame() throws NullInputException, ChessDaoException {
+    public GameView beginChessGame() {
         return chessService.beginChessGame();
     }
 
     @GetMapping("game/{gameId}")
-    public GameView getGameById(@PathVariable Integer gameId) throws InvalidInputException {
+    public GameView getGameById(@PathVariable Integer gameId) throws InvalidInputException, NullInputException {
         return chessService.getGameById(gameId);
     }
 
@@ -38,18 +36,13 @@ public class ChessController {
     }
 
     @PostMapping("/makeMove")
-    public GameView makeMove(@RequestBody MoveRequest moveRequest) throws InvalidInputException, NullInputException, MoveGeneratorException, ChessDaoException {
+    public GameView makeMove(@RequestBody MoveRequest moveRequest) throws InvalidInputException, NullInputException, MoveGeneratorException {
         return chessService.makeMove(moveRequest);
     }
 
     @PostMapping("/undoMove")
-    public GameView undoMove(@RequestBody UndoRequest moveRequest) throws InvalidInputException, NullInputException, ChessDaoException {
+    public GameView undoMove(@RequestBody UndoRequest moveRequest) throws InvalidInputException, NullInputException {
         return chessService.undoMove(moveRequest);
-    }
-
-    @GetMapping("/promote")
-    public GameView promotePiece(){
-        return chessService.promotePawn();
     }
 
 }

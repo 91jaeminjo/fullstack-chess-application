@@ -14,5 +14,9 @@ public interface GameDataRepository extends JpaRepository<GameData, Integer> {
             nativeQuery = true)
     List<Integer> findAllGameIds();
 
+    @Query( value = "ALTER SEQUENCE \"game_data_game_id_seq\" RESTART WITH 1;",
+            nativeQuery = true)
+    void resetSequenceAutoIncrement();
+
     GameData findByGameId(int currentGameId);
 }

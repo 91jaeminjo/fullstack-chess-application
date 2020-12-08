@@ -1,168 +1,144 @@
-//package com.talentpath.chess.services;
-//
-//import com.talentpath.chess.daos.ChessDao;
-//import com.talentpath.chess.exceptions.ChessDaoException;
-//import com.talentpath.chess.exceptions.InvalidInputException;
-//import com.talentpath.chess.exceptions.NullInputException;
-//import com.talentpath.chess.models.BoardData;
-//import com.talentpath.chess.models.GameData;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.test.context.ActiveProfiles;
-//import org.springframework.test.context.junit.jupiter.SpringExtension;
-//
-//import java.util.List;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//
-//@SpringBootTest
-//@ExtendWith(SpringExtension.class)
-//@ActiveProfiles( "daotest" )
-//class ChessServiceTest {
-//
-//    ChessService service;
-//
-//    @Autowired
-//    ChessDao daoToTest;
-//
-//    String initialState = "wr,wn,ws,wq,wk,ws,wn,wr," +
-//            "wp,wp,wp,wp,wp,wp,wp,wp," +
-//            "00,00,00,00,00,00,00,00," +
-//            "00,00,00,00,00,00,00,00," +
-//            "00,00,00,00,00,00,00,00," +
-//            "00,00,00,00,00,00,00,00," +
-//            "bp,bp,bp,bp,bp,bp,bp,bp," +
-//            "br,bn,bs,bq,bk,bs,bn,br";
-//
-//    @BeforeEach
-//    void setUp() {
-//        service = new ChessService(daoToTest);
-//        daoToTest.reset();
-//    }
-//
-//    @Test
-//    void beginChessGame() {
-//        // arrange
-//        try {
-//            // get num of games and boards before beginning a new game.
-//            List<GameData> allGameData = daoToTest.getAllGames();
-//            List<BoardData> allBoardData = daoToTest.getAllBoards();
-//            Integer numOfGames = allGameData != null? allGameData.size(): 0;
-//            Integer numOfBoards = allBoardData !=null? allBoardData.size(): 0;
-//
-//            // action
-//            GameData started = service.beginChessGame();
-//            // assert
-//
-//            // check num of games and boards should have increased by 1
-//            assertEquals(numOfBoards + 1, daoToTest.getAllBoards().size());
-//            assertEquals(numOfGames + 1, daoToTest.getAllGames().size());
-//
-//            // retrieve game and board by the returned game object
-//            GameData addedGameData = daoToTest.getGameById(started.getGameId());
-//            BoardData addedBoardData = daoToTest.getBoardById(started.getBoardId());
-//
-//            // game and board id of the returned game object should really exist
-//            assertNotNull(addedGameData.getGameId());
-//            assertNotNull(addedBoardData.getBoardId());
-//            assertNotNull(addedBoardData.getGameId());
-//            assertEquals(addedGameData.getGameId(), started.getGameId());
-//            assertEquals(addedBoardData.getBoardId(), started.getBoardId());
-//
-//            // check instance variables in board: moves should be 0,
-//            // prev and next boards should be null
-//
-//            assertEquals(0, addedBoardData.getPrevBoardId());
-//            assertEquals(0, addedBoardData.getNextBoardId());
-//            assertEquals(initialState, addedBoardData.getState());
-//        }
-//        catch(NullInputException | InvalidInputException | ChessDaoException ex){
-//            fail("Exception caught during begin game golden path test: " + ex.getMessage());
-//        }
-//    }
-//
-//    @Test
-//    void getGameById() {
-//
-//        try {
-//            // arrange
-//            // act
-//            GameData retrievedGameDataOne = daoToTest.getGameById(1);
-//            GameData retrievedGameDataTwo = daoToTest.getGameById(2);
-//            // assert
-//            assertEquals(1, retrievedGameDataOne.getGameId());
-//            assertEquals(1, retrievedGameDataOne.getBoardId());
-//            assertEquals(2, retrievedGameDataTwo.getGameId());
-//            assertEquals(2, retrievedGameDataTwo.getBoardId());
-//
-//        } catch(InvalidInputException ex){
-//            fail("Exception caught during getGameById golden path test: "+ex.getMessage());
-//        }
-//    }
-//
-//    @Test
-//    void getGameByInvalidId() {
-//
-//        try {
-//            // arrange
-//            // act
-//            GameData retrieved = daoToTest.getGameById(15);
-//            // assert
-//            fail("Exception not thrown when provided invalid id to getGameById.");
-//
-//        } catch(InvalidInputException ex){
-//
-//        }
-//    }
-//
-//    @Test
-//    void getBoardById() {
-//        try {
-//            // arrange
-//            // act
-//            BoardData retrievedBoardDataOne = daoToTest.getBoardById(1);
-//            BoardData retrievedBoardDataTwo = daoToTest.getBoardById(2);
-//
-//            // assert
-//            assertEquals(1, retrievedBoardDataOne.getGameId());
-//            assertEquals(1, retrievedBoardDataOne.getBoardId());
-//
-//            assertEquals(initialState, retrievedBoardDataOne.getState());
-//            assertNull(retrievedBoardDataOne.getPrevBoardId());
-//            assertNull(retrievedBoardDataOne.getPrevBoardId());
-//
-//
-//            assertEquals(2, retrievedBoardDataTwo.getGameId());
-//            assertEquals(2, retrievedBoardDataTwo.getBoardId());
-//
-//            assertEquals(initialState, retrievedBoardDataTwo.getState());
-//            assertNull(retrievedBoardDataTwo.getPrevBoardId());
-//            assertNull(retrievedBoardDataTwo.getNextBoardId());
-//
-//
-//        } catch(InvalidInputException ex){
-//            fail("Exception caught during getBoardById golden path: "+ex.getMessage());
-//        }
-//    }
-//
-//    @Test
-//    void getBoardByInvalidId() {
-//        try {
-//            // arrange
-//            // act
-//            BoardData retrieved = daoToTest.getBoardById(20);
-//            // assert
-//            fail("Exception not thrown when invalid id provided to getBoardById.");
-//        } catch(InvalidInputException ex){
-//
-//        }
-//    }
-//
-//
-//    @Test
-//    void makeMove() {
-//    }
-//}
+package com.talentpath.chess.services;
+
+
+import com.talentpath.chess.daos.GameDataRepository;
+import com.talentpath.chess.dtos.GameView;
+import com.talentpath.chess.dtos.MoveRequest;
+import com.talentpath.chess.exceptions.InvalidInputException;
+import com.talentpath.chess.exceptions.NullInputException;
+
+import com.talentpath.chess.models.GameData;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import javax.management.Query;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@SpringBootTest
+@ActiveProfiles( "daotest" )
+class ChessServiceTest {
+
+    @Autowired
+    ChessService service;
+
+    @Autowired
+    private JdbcTemplate template;
+
+
+    @Autowired
+    GameDataRepository gameDataRepository;
+
+    @PersistenceContext
+    EntityManager entityManager;
+    String initialState = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    @BeforeEach
+    void setUp() {
+        gameDataRepository.deleteAll();
+        template.execute("ALTER SEQUENCE \"game_data_game_id_seq\" RESTART WITH 1;");
+    }
+
+    @Test
+    void beginChessGame() {
+        // arrange
+        // get num of games and boards before beginning a new game.
+        List<Integer> allGameData = service.getAllGameIds();
+        Integer numOfGames = allGameData != null? allGameData.size(): 0;
+
+
+        // action
+        GameView started = service.beginChessGame();
+        // assert
+
+        // check num of games and boards should have increased by 1
+        assertEquals(numOfGames + 1, service.getAllGameIds().size());
+
+        assertEquals(initialState, started.getState());
+        assertFalse(started.getGameOver());
+        assertEquals("",started.getLastMove());
+
+    }
+
+    @Test
+    void getGameById() {
+
+        try {
+            // arrange
+            service.beginChessGame();
+            // act
+            GameView retrievedGameDataOne = service.getGameById(1);
+
+            // assert
+            assertEquals(1, retrievedGameDataOne.getGameId());
+
+
+        } catch(InvalidInputException | NullInputException ex){
+            fail("Exception caught during getGameById golden path test: "+ex.getMessage());
+        }
+    }
+
+    @Test
+    void getGameByNullId(){
+        try {
+            // arrange
+            // act
+            GameView retrieved = service.getGameById(null);
+            // assert
+            fail("Exception not thrown when provided invalid id to getGameById.");
+
+        } catch(NullInputException ex) {
+
+        } catch (Exception ex) {
+            fail("NullInput exception expected. Different exception caught: "+ex.getMessage());
+        }
+    }
+
+
+    @Test
+    void getGameByInvalidId() {
+
+        try {
+            // arrange
+            // act
+            GameView retrieved = service.getGameById(15);
+            // assert
+            fail("Exception not thrown when provided invalid id to getGameById.");
+
+        } catch(InvalidInputException ex){
+
+        } catch (Exception ex){
+            fail("InvalidInput exception expected. Different exception caught: "+ex.getMessage());
+        }
+    }
+
+    @Test
+    void makeMove() {
+
+        try {
+            // arrange
+            GameView gameView = service.beginChessGame();
+            MoveRequest moveRequest = new MoveRequest();
+            moveRequest.setGameId(gameView.getGameId());
+            moveRequest.setCurrentState(gameView.getState());
+            moveRequest.setNewMove("e2e4");
+            // act
+            GameView afterMove = service.makeMove(moveRequest);
+            // assert
+            assertEquals("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",afterMove.getState());
+
+
+        } catch (Exception ex){
+            fail("Exception caught during make move golden path test. "+ex.getMessage());
+        }
+    }
+}
